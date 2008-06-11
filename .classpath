@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<classpath>
+	<classpathentry kind="src" path=""/>
+	<classpathentry kind="lib" path="/home/tobi/src/eclipse/lib/bcmail-jdk14-138.jar"/>
+	<classpathentry kind="lib" path="/home/tobi/src/eclipse/lib/bcprov-jdk14-138.jar"/>
+	<classpathentry kind="lib" path="/home/tobi/src/eclipse/lib/PDFRenderer.jar"/>
+	<classpathentry kind="lib" path="/home/tobi/src/eclipse/lib/jpedalSTD.jar"/>
+	<classpathentry kind="lib" path="/home/tobi/src/eclipse/lib/iText-2.1.0.jar"/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/java-6-sun-1.6.0.06"/>
+	<classpathentry kind="output" path=""/>
+</classpath>

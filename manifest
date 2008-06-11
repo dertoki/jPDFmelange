@@ -1,0 +1,3 @@
+Manifest-Version: 1.0
+Main-Class: jPDFmelange.PDFmelange
+Class-Path: iText-2.1.0.jar jpedalSTD.jar
