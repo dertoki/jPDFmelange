@@ -193,7 +193,7 @@ public class MelangeJFrame extends JFrame {
 					} else {
 						index1 = jList1.getSelectedIndex() + 1;
 					}
-					System.out.println("index1 " + index1);
+					//System.out.println("index1 " + index1);
 
 					if (jList2.isSelectionEmpty() == false) {
 						index2 = jList2.getSelectedIndex();
@@ -247,7 +247,7 @@ public class MelangeJFrame extends JFrame {
 					} else {
 						index2 = jList2.getSelectedIndex() + 1;
 					}
-					System.out.println("index2 " + index2);
+					//System.out.println("index2 " + index2);
 
 					if (jList1.isSelectionEmpty() == false) {
 						index1 = jList1.getSelectedIndex();
@@ -1012,7 +1012,7 @@ public class MelangeJFrame extends JFrame {
 		pageList1.clear();
 		infileName = "";
 		this.setTitle(projectName + ": " + infileName);
-		System.out.println("Main list cleared,\nfile name cleared.");
+		//System.out.println("Main list cleared,\nfile name cleared.");
 	}
 
 	private void onRotate(int CWorCCW){
@@ -1033,7 +1033,7 @@ public class MelangeJFrame extends JFrame {
 			BufferedImage bimage = (BufferedImage) imgIcon.getImage();
 	        switch (CWorCCW){
 		        case DIRECTION.CCW:
-		    		System.out.println("CCW rotation initiated.");
+		    		//System.out.println("CCW rotation initiated.");
 					imgIcon = new ImageIcon(rotate90CCW(bimage));
 					if (rotation == 0) 
 						rotation = 270;
@@ -1041,7 +1041,7 @@ public class MelangeJFrame extends JFrame {
 						rotation = rotation - 90;
 					break;
 		        case DIRECTION.CW:
-		    		System.out.println("CW rotation initiated.");
+		    		//System.out.println("CW rotation initiated.");
 					imgIcon = new ImageIcon(rotate90CW(bimage));
 					rotation = (rotation + 90) % 360;
 					break;
@@ -1056,7 +1056,7 @@ public class MelangeJFrame extends JFrame {
 			
 			// Pagelist: rotate element
        		pageList1.set(index1, new PageNode(filename, pagenumber, rotation));
-       		System.out.println(filename + " Page " + pagenumber + " rotation " + rotation);
+       		//System.out.println(filename + " Page " + pagenumber + " rotation " + rotation);
      		
 			// Update the graphical representation
 			jList1.setSelectedIndex(index1);						
@@ -1296,13 +1296,9 @@ public class MelangeJFrame extends JFrame {
 				                (int)jPanePreview.getWidth(),
 				                (int)jPanePreview.getHeight());
         
-        System.out.println("PDF Page Width x Height, Rotation: " 
-        				   + rectPDF.getWidth() 
-        				   + " x " 
-        				   + rectPDF.getHeight()
-        				   + ", " 
-        				   + node.rotation);
-    	// jPedal do not change Width and Hight when the page is rotated !? 
+        //System.out.println("PDF Page Width x Height, Rotation: "+ rectPDF.getWidth()+ " x "+ rectPDF.getHeight()+ ", "+ node.rotation);
+    	
+        // jPedal do not change Width and Hight when the page is rotated !? 
         // To calculate the page ratio we need to turn higth with width when the page is rotated.
         if (node.rotation == 90 || node.rotation == 270){
         	int dummy = rectPDF.width;
@@ -1323,7 +1319,7 @@ public class MelangeJFrame extends JFrame {
 	    jPanePreview.decodePage(node.pagenumber);
         jPanePreview.invalidate();
 	    jPanePreview.repaint();
-        System.out.println("Page " + node.pagenumber + " ratioPDF "+ ratioPDF + " ratioPanel " + ratioPanel + " zoom " + zoom);
+        //System.out.println("Page " + node.pagenumber + " ratioPDF "+ ratioPDF + " ratioPanel " + ratioPanel + " zoom " + zoom);
 	}
 
 	/**
@@ -1405,7 +1401,7 @@ public class MelangeJFrame extends JFrame {
 					pageList1.clear();
 					jList1.setListData(listContent1);
 					jList1.updateUI();
-					System.out.println("Main list cleared.");
+					//System.out.println("Main list cleared.");
 				}
 			});
 		}
@@ -1428,7 +1424,7 @@ public class MelangeJFrame extends JFrame {
 					pageList2.clear();
 					jList2.setListData(listContent2);
 					jList2.updateUI();
-					System.out.println("Buffer list cleared.");
+					//System.out.println("Buffer list cleared.");
 				}
 			});
 		}
