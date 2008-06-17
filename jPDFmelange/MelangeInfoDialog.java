@@ -35,6 +35,9 @@ import java.awt.SystemColor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.awt.GridBagLayout;
+import java.awt.GridBagConstraints;
+import javax.swing.SwingConstants;
 
 public class MelangeInfoDialog extends JDialog {
 
@@ -48,6 +51,7 @@ public class MelangeInfoDialog extends JDialog {
 	private JTextArea jTextAreaLibraryInfo = null;
 	private JPanel jPanelAuthors = null;
 	private JTextArea jTextArea1 = null;
+	private JPanel jPanel = null;
 	/**
 	 * @param owner
 	 */
@@ -67,7 +71,8 @@ public class MelangeInfoDialog extends JDialog {
 		this.setTitle(message.getString("about") + " " + MelangeJFrame.projectName);
 		this.setBounds(new Rectangle(0, 0, 537, 360));
 		this.setLocationRelativeTo(this.getOwner());
-		jTextAreaLibraryInfo.append(message.getString("MelageInfo")+ "\n\n\n");
+		jTextAreaLibraryInfo.append(message.getString("MelageInfo")+ "\n\n");
+		jTextAreaLibraryInfo.append("http://jpdfmelange.berlios.de" + "\n\n");
 		jTextAreaLibraryInfo.append("Using " +
 				                    System.getProperty("os.name") + " " + 
 				                    System.getProperty("os.version") + " " + 
@@ -95,7 +100,7 @@ public class MelangeInfoDialog extends JDialog {
 			jContentPane.setLayout(borderLayout);
 			jContentPane.setPreferredSize(new Dimension(400, 200));
 			jContentPane.add(getJTabbedPane(), BorderLayout.CENTER);
-			jContentPane.add(getJButton(), BorderLayout.SOUTH);
+			jContentPane.add(getJPanel(), BorderLayout.SOUTH);
 		}
 		return jContentPane;
 	}
@@ -109,7 +114,8 @@ public class MelangeInfoDialog extends JDialog {
 		if (jButton == null) {
 			jButton = new JButton();
 			jButton.setText("OK");
-			jButton.setPreferredSize(new Dimension(40, 25));
+			jButton.setHorizontalAlignment(SwingConstants.CENTER);
+			jButton.setPreferredSize(new Dimension(60, 25));
 			jButton.addActionListener(new java.awt.event.ActionListener() {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
 					MelangeInfoDialog.this.setVisible(false);
@@ -226,11 +232,26 @@ public class MelangeInfoDialog extends JDialog {
 		if (jTextArea1 == null) {
 			jTextArea1 = new JTextArea();
 			jTextArea1.setBackground(SystemColor.window);
-			jTextArea1.setBounds(new Rectangle(15, 15, 180, 15));
+			jTextArea1.setBounds(new Rectangle(15, 15, 400, 15));
 			jTextArea1.setEditable(false);
-			jTextArea1.setText("Author: Tobias Tandetzki");
+			jTextArea1.setText("Author: Tobias Tandetzki <toki104400 at users.berlios.de>");
 		}
 		return jTextArea1;
+	}
+
+	/**
+	 * This method initializes jPanel	
+	 * 	
+	 * @return javax.swing.JPanel	
+	 */
+	private JPanel getJPanel() {
+		if (jPanel == null) {
+			jPanel = new JPanel();
+			jPanel.setLayout(new BorderLayout());
+			jPanel.setBackground(SystemColor.window);
+			jPanel.add(getJButton(), BorderLayout.EAST);
+		}
+		return jPanel;
 	}
 
 }  //  @jve:decl-index=0:visual-constraint="10,10"
