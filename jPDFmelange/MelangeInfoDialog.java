@@ -19,24 +19,22 @@
  ***************************************************************************/
 package jPDFmelange;
 
-import javax.swing.JPanel;
-import java.awt.Frame;
 import java.awt.BorderLayout;
-import javax.swing.JDialog;
-import javax.swing.JTextArea;
 import java.awt.Dimension;
-import java.util.ResourceBundle;
-
-import javax.swing.JScrollPane;
-import javax.swing.JButton;
-import javax.swing.JTabbedPane;
+import java.awt.Frame;
 import java.awt.Rectangle;
 import java.awt.SystemColor;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
-import java.awt.GridBagLayout;
-import java.awt.GridBagConstraints;
+import java.util.ResourceBundle;
+
+import javax.swing.JButton;
+import javax.swing.JDialog;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
 
 public class MelangeInfoDialog extends JDialog {
@@ -71,8 +69,10 @@ public class MelangeInfoDialog extends JDialog {
 		this.setTitle(message.getString("about") + " " + MelangeJFrame.projectName);
 		this.setBounds(new Rectangle(0, 0, 537, 360));
 		this.setLocationRelativeTo(this.getOwner());
+		jTextAreaLibraryInfo.append(MelangeJFrame.projectName + " " +
+				                    MelangeJFrame.projectVersion + "\n" +
+				                    "http://jpdfmelange.berlios.de" + "\n\n");
 		jTextAreaLibraryInfo.append(message.getString("MelageInfo")+ "\n\n");
-		jTextAreaLibraryInfo.append("http://jpdfmelange.berlios.de" + "\n\n");
 		jTextAreaLibraryInfo.append("Using " +
 				                    System.getProperty("os.name") + " " + 
 				                    System.getProperty("os.version") + " " + 
