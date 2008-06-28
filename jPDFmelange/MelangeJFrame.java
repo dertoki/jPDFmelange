@@ -20,31 +20,19 @@
 package jPDFmelange;
 
 
-import javax.swing.JFrame;
-import javax.swing.JPanel;
 import java.awt.BorderLayout;
-import java.awt.Dimension;
-import javax.swing.JScrollPane;
 import java.awt.Color;
 import java.awt.Cursor;
-import java.awt.Graphics;
+import java.awt.Dimension;
 import java.awt.Graphics2D;
+import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
 import java.awt.Image;
+import java.awt.Insets;
 import java.awt.Rectangle;
-
-import javax.swing.JTabbedPane;
-import java.awt.GridBagConstraints;
-import javax.swing.JButton;
-
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
-import java.awt.geom.AffineTransform;
 import java.awt.image.BufferedImage;
-import java.awt.image.BufferedImageOp;
-
-import javax.swing.ImageIcon;
-import java.awt.Insets;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -53,15 +41,27 @@ import java.util.Locale;
 import java.util.ResourceBundle;
 import java.util.Vector;
 
+import javax.swing.ImageIcon;
+import javax.swing.JButton;
 import javax.swing.JFileChooser;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JMenuBar;
 import javax.swing.JMenu;
+import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
 import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSplitPane;
+import javax.swing.JTabbedPane;
+import javax.swing.JToolBar;
 import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
+
+import org.jpedal.PdfDecoder;
+import org.jpedal.exception.PdfSecurityException;
+
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.pdf.PdfCopy;
@@ -69,15 +69,6 @@ import com.lowagie.text.pdf.PdfDictionary;
 import com.lowagie.text.pdf.PdfName;
 import com.lowagie.text.pdf.PdfNumber;
 import com.lowagie.text.pdf.PdfReader;
-import javax.swing.JSplitPane;
-import javax.swing.JToolBar;
-
-import org.jpedal.PdfDecoder;
-import org.jpedal.exception.PdfException;
-import org.jpedal.exception.PdfSecurityException;
-
-import java.lang.Object;
-import java.lang.String;
 
 public class MelangeJFrame extends JFrame {
 
@@ -86,6 +77,7 @@ public class MelangeJFrame extends JFrame {
 	 */
 	private static final long serialVersionUID = 4042464615276354878L;
 	public static final String projectName = "jPDFmelange";
+	public static final String projectVersion = "0.1.9";
 	String bufferfile = "";
 	String infileName  = "";
 	protected Object frame;
@@ -1139,50 +1131,75 @@ public class MelangeJFrame extends JFrame {
 						Vector listContent,  // the content of the JList object
 						ArrayList pageList)  // a list of pages that we'd like to display in our JList 
 	throws Exception{
-
-		// height of the icons (thumbnails)
-		final int iconheight = 80;
-		//load a pdf from a byte buffer
-		//final double zoom = 0.1;
+		
 		int rotation;
 		pdfDecoder = new PdfDecoder();
 	    pdfDecoder.openPdfFile(filename);
 	    if (pdfDecoder.isEncrypted()) 
 	    	throw new PdfSecurityException("messageEncryptionNotSupported");
 	    int nPages = pdfDecoder.getPageCount();
-        ImageIcon image = null;
-        //Image img = null;
-        BufferedImage bufferedImg = null;
         // i need the file simply to find the last name in the pathname's name sequence.
    		File file = new File(filename);
 		currentDirectoryPath = file.getParent();
-
+		
         Cursor cursor = getCursor();
         setCursor(new Cursor(Cursor.WAIT_CURSOR));
         
-        for (int ipage = 1; ipage < nPages+1; ipage++) {
-			
-			//generate the image
-        	//pdfDecoder.setPageParameters((float) 0.05, i+1);
-			//get the width and height for the doc at the default zoom 
-           	bufferedImg = pdfDecoder.getPageAsThumbnail(ipage, iconheight);
-           	//pdfDecoder.setThumbnailsDrawing(true);
-           	//bufferedImg = pdfDecoder.getPageAsTransparentImage(i+1);
-           	//img = bufferedImg.getScaledInstance((int)(bufferedImg.getWidth()*zoom), 
-			//									(int)(bufferedImg.getHeight()*zoom), 
-			//									Image.SCALE_SMOOTH);
-	        	
-	        //Load the pet images and create an array of indexes.
-       		image = new ImageIcon(bufferedImg);
-       		listContent.add(new JLabel("<" +file.getName() + "> " + messages.getString("page") + " " + ipage, 
-       								   image, 
+        int pageWidth = 0;
+        final int iconHeight = 70; // in pixels
+        final int criticalPageWidth = 300; // in mm
+        BufferedImage bufferedImage = null;
+        Image scaledImage = null;
+        ImageIcon imageIcon = null;
+        
+        //Runtime r = Runtime.getRuntime();
+
+        for (int ipage = 1; ipage < (nPages+1); ipage++) {
+        	//
+        	//  getPageAsThubnail is much faster, but this method is depreciated
+        	//     and the rendered image isn't transparent.
+        	//
+           	//bufferedImg = pdfDecoder.getPageAsThumbnail(ipage, iconheight);
+        	//
+        	
+    	    // Get the page width in millimeter.
+            pageWidth = Math.round(pdfDecoder.getPdfPageData().getMediaBoxWidth(ipage) * (25.4f/72f));
+            // Reduce the page scale for larger page formats.
+            //    This reduces the quality but avoid heap space problems.
+            if (pageWidth > criticalPageWidth) {
+            	pdfDecoder.setPageParameters(0.5f, ipage, -1);
+            }
+    	    bufferedImage = pdfDecoder.getPageAsTransparentImage(ipage);
+    	    // Get a scaled image with defined height, 
+    	    //     unfortunately this is not a buffered image. 
+    	    if (bufferedImage.getHeight() > bufferedImage.getWidth())
+    	    	scaledImage = bufferedImage.getScaledInstance(iconHeight, -1, BufferedImage.SCALE_SMOOTH);
+    	    else
+    	    	scaledImage = bufferedImage.getScaledInstance(-1, iconHeight, BufferedImage.SCALE_SMOOTH);
+    	    // Create a buffered image with this scaled image.
+    	    bufferedImage = new BufferedImage(scaledImage.getWidth(null), scaledImage.getHeight(null) , BufferedImage.TYPE_INT_ARGB);
+    	    Graphics2D g2 = bufferedImage.createGraphics();
+    	    g2.drawImage(scaledImage, 0, 0,null);
+    	    // Create a image icon with the created buffered image.
+    	    //     (It's not a good idea to create the image icon with the scaled image directly,
+    	    //      we will get a heap space error after about 30 thumbnails)
+       		imageIcon = new ImageIcon(bufferedImage);
+       		// Add a JLable to the list.
+        	listContent.add(new JLabel("<" +file.getName() + "> " + messages.getString("page") + " " + ipage, 
+       								   imageIcon, 
        								   SwingConstants.LEFT));
+        	// Add a node to the page list.
        		rotation = pdfDecoder.getPdfPageData().getRotation(ipage);
        		pageList.add(new PageNode(filename, ipage, rotation));
-       		bufferedImg = null;
-       		System.out.println("Thumbnail of " + messages.getString("page") 
+       		// Print some info to the standard output.
+    		System.out.println("Thumbnail of "
+    				           + "<" +file.getName() + "> "
+    				           + messages.getString("page") 
        				           + " " + ipage
-       				           + ", rotation=" + rotation);
+       				           + ", rotation=" + rotation
+       				           + ", pixel [" + bufferedImage.getWidth()  + "," + bufferedImage.getHeight() + "]" 
+       				           //+ ", free memory=" + r.freeMemory()
+       				           );
         }
         pdfDecoder.closePdfFile();
 		jList.setListData(listContent);
