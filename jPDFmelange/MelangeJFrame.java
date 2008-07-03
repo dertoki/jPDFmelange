@@ -34,10 +34,16 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.Reader;
+import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Locale;
+import java.util.Properties;
 import java.util.ResourceBundle;
 import java.util.Vector;
 
@@ -76,10 +82,22 @@ public class MelangeJFrame extends JFrame {
 	 *  Projekct Main Class
 	 */
 	private static final long serialVersionUID = 4042464615276354878L;
+	
 	public static final String projectName = "jPDFmelange";
 	public static final String projectVersion = "0.1.9";
+	public static String propertiesFileName = System.getProperty("user.dir").concat(System.getProperty("file.separator")).concat("melange.rc");
 	String bufferfile = "";
 	String infileName  = "";
+	String outfile = "";
+	String currentDirectoryPath = "";
+	public static Locale locale = Locale.getDefault();
+	public static ArrayList localeTable = new ArrayList();
+
+	// Properties set in propertiesFile
+    static int iconHeight = 70; // in pixels
+    static int imageScalingAlgorithm = BufferedImage.SCALE_SMOOTH;
+
+	// GUI Elemets
 	protected Object frame;
 	private JButton jButtonAdd = null;
 	private JButton jButtonDel = null;
@@ -112,8 +130,6 @@ public class MelangeJFrame extends JFrame {
 	private JScrollPane jScrollPane2 = null;
 	private JSplitPane jSplitPane = null;
 	private JTabbedPane jTabbedPane = null;
-	String outfile = "";  //  @jve:decl-index=0:
-	String currentDirectoryPath = "";
 /*
  * Declaration for Java 5 (Java SE 1.5 or higher).  
  * The Sun Renderer com.sun.pdfview needs Java 5 (Java SE 1.5 or higher).
@@ -138,6 +154,8 @@ public class MelangeJFrame extends JFrame {
 	private JButton jButtonRotateRight = null;
 	private JButton jButtonRotateLeft = null;
 	private JMenuItem jMenuItemFileAddBuffer = null;
+
+	private JMenuItem jMenuItemPreferences = null;
 	 
 	/**
 	 * This is the default constructor
@@ -723,6 +741,7 @@ public class MelangeJFrame extends JFrame {
 		if (jMenuPreferences == null) {
 			jMenuPreferences = new JMenu();
 			jMenuPreferences.setText(messages.getString("preferences"));
+			jMenuPreferences.add(getJMenuItemPreferences());
 		}
 		return jMenuPreferences;
 	}
@@ -857,17 +876,59 @@ public class MelangeJFrame extends JFrame {
 	 */
 	private void initialize() {
 
-		//Locale locale = new Locale("it","");
-		Locale locale = Locale.getDefault();
-		messages = ResourceBundle.getBundle("resources/MelangeMessages",locale);
-		if (locale != messages.getLocale()) {
-			System.out.println("Local \""
-								+ locale.getDisplayName()
-								+ "\" not available, using local \"" 
-								+ messages.getLocale().getDisplayName()
-								+ "\".");
-		}
+		//
+		//  Check what language properties files are available.
+		//      Make a list of all locals that are supported with a language properties file.
+		//      This list is used within the options menu dialoge.
+		//
+		/*
+	    String url = getClass().getResource("/resources").getFile();		
+		System.out.println(url);
+		File resourcesDir = new File(url); 
+	    String fileNames[] = resourcesDir.list(new PropertiesFilenameFilter());
+	    for (int i = 0; i < fileNames.length; i++ ){
+	    	  String language = "", country = "", variant = "";
+		      int l = fileNames[i].indexOf('_');
+		      if (l > -1){
+		    	  language = fileNames[i].substring(l+1, l+3);
+	    		  int c = fileNames[i].indexOf('_', l+3);
+	    		  if (c > -1){
+	    			  country = fileNames[i].substring(c+1, c+3);
+	    			  int v = fileNames[i].indexOf('_', c+3);
+	    			  if (v > -1){
+	    				  int dot = fileNames[i].indexOf('.', v);
+	    				  variant = fileNames[i].substring(v+1, dot);
+	    			  }
+	    		  }
+	    		  //System.out.println(fileNames[i] + " " + language + " " + country + " " + variant);
+	    		  localeTable.add(new Locale(language, country, variant));
+	    	  }
+	    }
+	    */
 		
+	    localeTable.add(new Locale("de"));
+	    localeTable.add(new Locale("en"));
+
+	    System.out.println("-- supported locals --");
+	    for (int i=0; i < localeTable.size(); i++){
+  		  System.out.println(((Locale)localeTable.get(i)).getDisplayName()); 	    	  	    	
+	    }
+	    
+		//
+		// Load the properties File if is exists.
+		//
+		File pfile = new File(propertiesFileName);
+		if (pfile.exists()) getProperties();
+		
+		//
+	    //  Load the local properties.
+	    //
+		messages = ResourceBundle.getBundle("resources/MelangeMessages",locale);
+		System.out.println("-- using local " + messages.getLocale().getDisplayName() + " --\n");
+				
+		//
+		// Initailize the main window.
+		//
 		this.setJMenuBar(getJJMenuBar());
         this.setContentPane(getJContentPane());
 		this.setSize(700, 485);
@@ -878,6 +939,74 @@ public class MelangeJFrame extends JFrame {
 				MelangeJFrame.this.dispose();
 			}
 		});	
+	}
+
+	/**
+	 * This method reads the properties file "melange.rc" located in "user.dir". 	
+	 * 	
+	 * @return void
+	 */
+	private void getProperties() {
+		String propertyStr = null;
+		int propertyInt;
+		try {
+			Properties melangeProperties = new Properties();
+			Reader propInFile = new FileReader(propertiesFileName);
+			melangeProperties.load(propInFile);
+			melangeProperties.list(System.out);
+			
+			// Get the property IconHeight, check limits.
+			propertyStr = melangeProperties.getProperty("IconHeight", String.valueOf(iconHeight));
+			propertyInt = Integer.parseInt(propertyStr);
+			if (propertyInt < 500 || propertyInt > 0) iconHeight = propertyInt;
+
+			// Get the property ImageScalingAlgorithm, check limits.
+			propertyStr = melangeProperties.getProperty("ImageScalingAlgorithm", String.valueOf(imageScalingAlgorithm));
+			propertyInt = Integer.parseInt(propertyStr);
+			if (propertyInt == BufferedImage.SCALE_FAST || 
+				propertyInt == BufferedImage.SCALE_SMOOTH ||
+				propertyInt == BufferedImage.SCALE_REPLICATE ||
+				propertyInt == BufferedImage.SCALE_AREA_AVERAGING) imageScalingAlgorithm = propertyInt;
+			
+			// Get the property local, check limits.
+			String languageStr =melangeProperties.getProperty("LocaleLanguage", locale.getLanguage());
+			String countryStr = melangeProperties.getProperty("LocaleCountry", locale.getCountry());
+			String variantStr = melangeProperties.getProperty("LocaleVariant", locale.getVariant());
+			locale = new Locale(languageStr, countryStr, variantStr);
+			
+		} catch (NumberFormatException e){
+			System.err.println("Incorrect formatting in " + propertiesFileName);
+		} catch (FileNotFoundException e) {
+			System.err.println("Can't find " + propertiesFileName);
+		} catch (IOException e) {
+			System.err.println("I/O failed.");
+		}
+		
+	}
+
+	/**
+	 * This method writes the properties file "melange.rc" located in "user.dir". 	
+	 * 	
+	 * @return void
+	 */
+	public void setProperties() {
+		try {
+			Properties melangeProperties = new Properties();
+			// Set the properties.
+			melangeProperties.setProperty("IconHeight", String.valueOf(iconHeight));
+			melangeProperties.setProperty("ImageScalingAlgorithm", String.valueOf(imageScalingAlgorithm));
+			melangeProperties.setProperty("LocaleLanguage", locale.getLanguage());
+			melangeProperties.setProperty("LocaleCountry", locale.getCountry());
+			melangeProperties.setProperty("LocaleVariant", locale.getVariant());
+			// write the properties to the rc file.
+			Writer propOutFile = new FileWriter(propertiesFileName);
+			melangeProperties.store(propOutFile, "jPDFmelage properties file");
+		} catch (FileNotFoundException e) {
+			System.err.println("Can't find " + propertiesFileName);
+		} catch (IOException e) {
+			System.err.println("I/O failed.");
+		}
+		
 	}
 
 	private void onFileOpenBuffer(){
@@ -1146,7 +1275,6 @@ public class MelangeJFrame extends JFrame {
         setCursor(new Cursor(Cursor.WAIT_CURSOR));
         
         int pageWidth = 0;
-        final int iconHeight = 70; // in pixels
         final int criticalPageWidth = 300; // in mm
         BufferedImage bufferedImage = null;
         Image scaledImage = null;
@@ -1173,9 +1301,9 @@ public class MelangeJFrame extends JFrame {
     	    // Get a scaled image with defined height, 
     	    //     unfortunately this is not a buffered image. 
     	    if (bufferedImage.getHeight() > bufferedImage.getWidth())
-    	    	scaledImage = bufferedImage.getScaledInstance(iconHeight, -1, BufferedImage.SCALE_SMOOTH);
+    	    	scaledImage = bufferedImage.getScaledInstance(iconHeight, -1, imageScalingAlgorithm);
     	    else
-    	    	scaledImage = bufferedImage.getScaledInstance(-1, iconHeight, BufferedImage.SCALE_SMOOTH);
+    	    	scaledImage = bufferedImage.getScaledInstance(-1, iconHeight, imageScalingAlgorithm);
     	    // Create a buffered image with this scaled image.
     	    bufferedImage = new BufferedImage(scaledImage.getWidth(null), scaledImage.getHeight(null) , BufferedImage.TYPE_INT_ARGB);
     	    Graphics2D g2 = bufferedImage.createGraphics();
@@ -1261,7 +1389,7 @@ public class MelangeJFrame extends JFrame {
 		File file =     new File(fileName);
 		File tmpfile =  File.createTempFile("Mixer", null, file.getParentFile());
 		String bakfilePrefix = file.getName().substring(0, file.getName().lastIndexOf('.'));
-		File bakfile =  new File(file.getParent().concat("/").concat(bakfilePrefix).concat(".bak"));
+		File bakfile =  new File(file.getParent().concat(System.getProperty("file.separator")).concat(bakfilePrefix).concat(".bak"));
 
 		// itext usage
 		System.out.println("Writing new content to <" + tmpfile.getName() + ">");
@@ -1544,6 +1672,25 @@ public class MelangeJFrame extends JFrame {
 			});
 		}
 		return jMenuItemFileAddBuffer;
+	}
+
+	/**
+	 * This method initializes jMenuItemPreferences	
+	 * 	
+	 * @return javax.swing.JMenuItem	
+	 */
+	private JMenuItem getJMenuItemPreferences() {
+		if (jMenuItemPreferences == null) {
+			jMenuItemPreferences = new JMenuItem();
+			jMenuItemPreferences.setText(messages.getString("options"));
+			jMenuItemPreferences.addActionListener(new java.awt.event.ActionListener() {
+				public void actionPerformed(java.awt.event.ActionEvent e) {
+					MelangePreferencesDialog prefDialog = new MelangePreferencesDialog(MelangeJFrame.this);
+					prefDialog.setVisible(true);
+				}
+			});
+		}
+		return jMenuItemPreferences;
 	}
 
 	

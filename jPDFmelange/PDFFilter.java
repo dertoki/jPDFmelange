@@ -20,6 +20,8 @@
 package jPDFmelange;
 
 import java.io.File;
+import java.io.FilenameFilter;
+
 import javax.swing.filechooser.FileFilter;
 
 
@@ -60,3 +62,18 @@ public class PDFFilter extends FileFilter {
     }
 
 }
+
+class PropertiesFilenameFilter implements FilenameFilter 
+{ 
+  public boolean accept( File f, String s ) 
+  { 
+	  boolean isLocalePropertyFileName = false;
+	  if (s.toLowerCase().endsWith( ".properties" ) || s.toLowerCase().startsWith("MelangeMessages"))
+		  isLocalePropertyFileName = true;
+	  else 
+		  isLocalePropertyFileName = false;
+    return isLocalePropertyFileName;
+  } 
+} 
+ 
+
