@@ -34,6 +34,7 @@ import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
@@ -84,7 +85,7 @@ public class MelangeJFrame extends JFrame {
 	private static final long serialVersionUID = 4042464615276354878L;
 	
 	public static final String projectName = "jPDFmelange";
-	public static final String projectVersion = "0.1.9";
+	public static final String projectVersion = "0.1.9.1";
 	public static String propertiesFileName = System.getProperty("user.dir").concat(System.getProperty("file.separator")).concat("melange.rc");
 	String bufferfile = "";
 	String infileName  = "";
@@ -924,7 +925,7 @@ public class MelangeJFrame extends JFrame {
 	    //  Load the local properties.
 	    //
 		messages = ResourceBundle.getBundle("resources/MelangeMessages",locale);
-		System.out.println("-- using local " + messages.getLocale().getDisplayName() + " --\n");
+		System.out.println("-- using locale " + messages.getLocale().getDisplayName() + " --\n");
 				
 		//
 		// Initailize the main window.
@@ -951,7 +952,10 @@ public class MelangeJFrame extends JFrame {
 		int propertyInt;
 		try {
 			Properties melangeProperties = new Properties();
-			Reader propInFile = new FileReader(propertiesFileName);
+			// Java > java 1.4 we can use a FileReader
+			//Reader propInFile = new FileReader(propertiesFileName);
+			// for Java == java 1.4 we need a InputStream
+			FileInputStream propInFile = new FileInputStream(propertiesFileName);
 			melangeProperties.load(propInFile);
 			melangeProperties.list(System.out);
 			
@@ -999,7 +1003,11 @@ public class MelangeJFrame extends JFrame {
 			melangeProperties.setProperty("LocaleCountry", locale.getCountry());
 			melangeProperties.setProperty("LocaleVariant", locale.getVariant());
 			// write the properties to the rc file.
-			Writer propOutFile = new FileWriter(propertiesFileName);
+			// Java > java 1.4 we can use a FileWriter
+			//Writer propOutFile = new FileWriter(propertiesFileName);
+			// for Java == java 1.4 we need a OutputStream
+			System.out.println("Saving properties to <" + propertiesFileName + ">");
+			FileOutputStream propOutFile = new FileOutputStream(propertiesFileName);
 			melangeProperties.store(propOutFile, "jPDFmelage properties file");
 		} catch (FileNotFoundException e) {
 			System.err.println("Can't find " + propertiesFileName);

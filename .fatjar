@@ -1,14 +1,14 @@
 #Fat Jar Configuration File
-#Thu Jul 03 21:25:15 CEST 2008
+#Sat Jul 05 15:29:12 CEST 2008
 onejar.license.required=false
 manifest.classpath=
 manifest.removesigners=true
 onejar.checkbox=false
-jarname=/home/tobi/jPDFmelange/jPDFmelange-0.1.9.jar
+jarname=/home/tobi/jPDFmelange/jPDFmelange-0.1.9.1.jar
 manifest.mergeall=true
 manifest.mainclass=jPDFmelange.PDFmelange
 manifest.file=<createnew>
 jarname.isextern=true
 onejar.expand=
-excludes=<po|jPDFmelange>~CVS/;<po|jPDFmelange>~resources/~CVS/;<po|jPDFmelange>~icons/~CVS/;<po|jPDFmelange>~html/;<po|jPDFmelange>~jPDFmelange/~CVS/;<jar|bcmail-jdk14-138.jar>;<jar|PDFRenderer.jar>
+excludes=<po|jPDFmelange>~CVS/;<po|jPDFmelange>~resources/~CVS/;<po|jPDFmelange>~icons/~CVS/;<po|jPDFmelange>~html/;<po|jPDFmelange>~jPDFmelange/~CVS/;<po|jPDFmelange>~melange.rc;<jar|bcmail-jdk14-138.jar>;<jar|PDFRenderer.jar>
 includes=
