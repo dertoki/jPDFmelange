@@ -924,7 +924,7 @@ public class MelangeJFrame extends JFrame {
 		//
 	    //  Load the local properties.
 	    //
-		messages = ResourceBundle.getBundle("resources/MelangeMessages",locale);
+		messages = ResourceBundle.getBundle("resources/MelangeMessages",MelangeJFrame.locale);
 		System.out.println("-- using locale " + messages.getLocale().getDisplayName() + " --\n");
 				
 		//
