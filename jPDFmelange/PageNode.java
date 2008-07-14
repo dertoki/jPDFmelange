@@ -19,32 +19,106 @@
  ***************************************************************************/
 package jPDFmelange;
 
-public class PageNode {
-	String file;
+import java.awt.image.BufferedImage;
+import java.io.File;
+
+import javax.swing.ImageIcon;
+import javax.swing.JLabel;
+import javax.swing.SwingConstants;
+
+public class PageNode extends JLabel{
+	/**
+	 * This class extends JLabel with some attributes of PDF pages.
+	 */
+	private static final long serialVersionUID = 1624968555506269609L;
+	String filename;
 	int pagenumber; // pagenumber 1 = Page 1
 	int rotation;   // 0, 90, 180, 270, 360
-	int format;
-	/**
-	 * 
-	 */
-	public PageNode(String f, int p) {
-		file = f;
-		pagenumber = p;
-		rotation = 0;
+	int format;     // A4, A3, A2, A1, A0, ...
+
+	public void setFilename(String name){
+		this.filename = name;
 	}
-	public PageNode(String f, int p, int r) {
-		file = f;
-		pagenumber = p;
-		rotation = r;
+	
+	public void setPagenumber(int i){
+		this.pagenumber = i;
 	}
-	public PageNode(String f, int p, int r, int a) {
-		file = f;
-		pagenumber = p;
-		rotation = r;
-		format = a;
+	
+	public void setRotation(int iRot){
+		this.rotation = iRot;
+	}
+	
+	public void setFormat(int iForm){
+		this.format = iForm;
+	}
+
+	public void rotate(int CWorCCW){
+
+   		File file = new File(filename);
+   		
+		// Labellist: rotate element
+		ImageIcon imgIcon = (ImageIcon) this.getIcon();
+		BufferedImage bimage = (BufferedImage) imgIcon.getImage();
+        switch (CWorCCW){
+	        case DIRECTION.CCW:
+	    		//System.out.println("CCW rotation initiated.");
+				imgIcon = new ImageIcon(rotate90CCW(bimage));
+				if (rotation == 0) 
+					rotation = 270;
+				else 
+					rotation = rotation - 90;
+				break;
+	        case DIRECTION.CW:
+	    		//System.out.println("CW rotation initiated.");
+				imgIcon = new ImageIcon(rotate90CW(bimage));
+				rotation = (rotation + 90) % 360;
+				break;
+	        default: 
+	            throw new IllegalArgumentException( "Unknown Operator!" ); 
+        }
+		
+   		// Change the node.
+   		this.setText("<" +file.getName() + "> " + MelangeJFrame.messages.getString("page") + " " + pagenumber);
+   		this.setIcon(imgIcon);
+   		this.setHorizontalAlignment(SwingConstants.LEFT);
+   		this.setFilename(filename);
+   		this.setPagenumber(pagenumber);
+   		this.setRotation(rotation);
+	}
+	
+	private BufferedImage rotate90CCW(BufferedImage bi)
+	{
+		int width = bi.getWidth();
+		int height = bi.getHeight();
+		
+		BufferedImage biRot = new BufferedImage(height, width, bi.getType());
+		
+		for(int i=0; i<width; i++)
+			for(int j=0; j<height; j++)
+				biRot.setRGB(j, width-1-i, bi.getRGB(i, j));
+		
+		return biRot;
+	}
+
+	private BufferedImage rotate90CW(BufferedImage bi)
+	{
+		int width = bi.getWidth();
+		int height = bi.getHeight();
+		
+		BufferedImage biRot = new BufferedImage(height, width, bi.getType());
+		
+		for(int i=0; i<width; i++)
+			for(int j=0; j<height; j++)
+				biRot.setRGB(height-1-j, i, bi.getRGB(i, j));
+		
+		return biRot;
 	}
 }
 
+/**
+ * This class indicates the direction of rotating.
+ *    This is used in a switch statement.
+ */
 class DIRECTION { 
 	public static final int CCW = -90;	//!< 'counter clockwise'
 	public static final int CW 	= +90;	//!< 'clockwise'

@@ -37,11 +37,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
-import java.io.FileReader;
-import java.io.FileWriter;
 import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Properties;
@@ -52,7 +48,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
@@ -85,18 +80,29 @@ public class MelangeJFrame extends JFrame {
 	private static final long serialVersionUID = 4042464615276354878L;
 	
 	public static final String projectName = "jPDFmelange";
-	public static final String projectVersion = "0.1.9.1";
+	public static final String projectVersion = "0.1.10";
 	public static String propertiesFileName = System.getProperty("user.dir").concat(System.getProperty("file.separator")).concat("melange.rc");
 	String bufferfile = "";
 	String infileName  = "";
-	String outfile = "";
 	String currentDirectoryPath = "";
-	public static Locale locale = Locale.getDefault();
-	public static ArrayList localeTable = new ArrayList();
 
 	// Properties set in propertiesFile
     static int iconHeight = 70; // in pixels
     static int imageScalingAlgorithm = BufferedImage.SCALE_SMOOTH;
+	public static Locale locale = Locale.getDefault();
+	public static ArrayList localeTable = new ArrayList();
+    /*
+     * Declaration for Java 5 (Java SE 1.5 or higher).  
+     * The Sun Renderer com.sun.pdfview needs Java 5 (Java SE 1.5 or higher).
+     * 
+    	private Vector<PageNode> listContent1 = new Vector<PageNode>();  //  @jve:decl-index=0:
+    	private Vector<PageNode> listContent2 = new Vector<PageNode>();  //  @jve:decl-index=0:
+    */
+    private Vector listContent1 = new Vector();  //  @jve:decl-index=0:
+    private Vector listContent2 = new Vector();  //  @jve:decl-index=0:
+    int indexOfPreviewPane;
+	public static ResourceBundle messages = null;  //  @jve:decl-index=0:
+	private PdfDecoder pdfDecoder = null;
 
 	// GUI Elemets
 	protected Object frame;
@@ -131,31 +137,13 @@ public class MelangeJFrame extends JFrame {
 	private JScrollPane jScrollPane2 = null;
 	private JSplitPane jSplitPane = null;
 	private JTabbedPane jTabbedPane = null;
-/*
- * Declaration for Java 5 (Java SE 1.5 or higher).  
- * The Sun Renderer com.sun.pdfview needs Java 5 (Java SE 1.5 or higher).
- * 
-	private Vector<JLabel> listContent1 = new Vector<JLabel>();  //  @jve:decl-index=0:
-	private Vector<JLabel> listContent2 = new Vector<JLabel>();  //  @jve:decl-index=0:
-	private ArrayList<PageNode> pageList1 = new ArrayList<PageNode>();  //  @jve:decl-index=0:
-	private ArrayList<PageNode> pageList2 = new ArrayList<PageNode>();  //  @jve:decl-index=0:
-*/
-	private Vector listContent1 = new Vector();  //  @jve:decl-index=0:
-	private Vector listContent2 = new Vector();  //  @jve:decl-index=0:
-	private ArrayList pageList1 = new ArrayList();  //  @jve:decl-index=0:
-	private ArrayList pageList2 = new ArrayList();  //  @jve:decl-index=0:
-	int indexOfPreviewPane;
 	private JMenuItem jMenuItemInfo = null;
 	private JMenuItem jMenuItemClearMain = null;
 	private JMenuItem jMenuItemClearBuffer = null;
-	public static ResourceBundle messages = null;  //  @jve:decl-index=0:
-	//the JPanel/decoder object
 	private PdfDecoder jPanePreview = null;
-	private PdfDecoder pdfDecoder = null;
 	private JButton jButtonRotateRight = null;
 	private JButton jButtonRotateLeft = null;
 	private JMenuItem jMenuItemFileAddBuffer = null;
-
 	private JMenuItem jMenuItemPreferences = null;
 	 
 	/**
@@ -169,7 +157,6 @@ public class MelangeJFrame extends JFrame {
 		this.setTitle(projectName + ": " + infileName);
 		listContent1.clear();
 		jList1.removeAll();
-		pageList1.clear();
 	}
 
 	/* (Kein Javadoc)
@@ -197,46 +184,80 @@ public class MelangeJFrame extends JFrame {
 			jButtonAdd.setToolTipText(messages.getString("movePage2Source"));
 			jButtonAdd.addActionListener(new java.awt.event.ActionListener() {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
-					int index1 = 0;
-					int index2 = 0;
-					if (jList1.isSelectionEmpty() == true){
-						index1 = jList1.getModel().getSize();
-					} else {
-						index1 = jList1.getSelectedIndex() + 1;
-					}
-					//System.out.println("index1 " + index1);
-
-					if (jList2.isSelectionEmpty() == false) {
-						index2 = jList2.getSelectedIndex();
-						// modify Labellist and Pagelist:
-						if (index1 == listContent1.size()) {
-							listContent1.add(listContent2.get(index2));
-							pageList1.add(pageList2.get(index2));
-						} else {
-							listContent1.add(index1, listContent2.get(index2));
-							pageList1.add(index1, pageList2.get(index2));
-						}
-						listContent2.remove(index2);
-						pageList2.remove(index2);
-						if (index2 == listContent2.size()) index2--;
-						// I don't know why this is necessaray, 
-						//   but jList1 and jList2 doesn't realize the changes without this ".setListData"
-						jList1.setListData(listContent1); 
-						jList2.setListData(listContent2);  
-						// Update the graphical representation
-						jList1.setSelectedIndex(index1);						
-						jList1.ensureIndexIsVisible(index1);
-						jList2.setSelectedIndex(index2);						
-						jList2.ensureIndexIsVisible(index2);
-					}
-					jList1.repaint();
-					jList2.repaint();
+					onAddPages();
 				}
 			});
 		}
 		return jButtonAdd;
 	}
 
+	/**
+	 * This method moves selected pages from the "Buffer List" to "Main List" 	
+	 * The "Buffer List" is represented with 
+	 *                  jList2: PDFjList (extends JList)
+	 *                  listcontent2: Vector<PageNode>
+	 * The "Main List" is represented with 
+	 *                  jList1: PDFjList (extends JList)
+	 *                  listcontent1: Vector<PageNode>
+	 * 
+	 * @return void	
+	 */
+	private void onAddPages(){
+		int index1 = 0;
+		int[] idx;
+
+		// fix the current index the "Main List"
+		if (jList1.isSelectionEmpty() == true){
+			index1 = jList1.getModel().getSize();
+		} else {
+			index1 = jList1.getSelectedIndex() + 1;
+		}
+
+		if (jList2.isSelectionEmpty() == false) {
+			idx = jList2.getSelectedIndices();
+		
+			// move the selected item of "Buffer List" to "Main List"
+			for (int i=(idx.length-1); i>=0; i--) {
+				moveContent(listContent2, idx[i], 
+				   	 		listContent1, index1);
+			}
+			
+			jList1.setListData(listContent1); 
+			jList2.setListData(listContent2);  
+			// Update the graphical representation
+			for (int i=0; i<idx.length; i++){
+				idx[i] = index1 + i;
+			}
+			jList1.setSelectedIndices(idx);						
+			jList1.ensureIndexIsVisible(idx[idx.length-1]);
+		}
+		jList1.repaint();
+		jList2.repaint();
+	}
+
+	/**
+	 * This method moves content of List A to List B  	
+	 * The List A is represented with 
+	 *                  C1: Vector<PageNode>
+	 * The List B is represented with 
+	 *                  C2: Vector<PageNode>
+	 * 
+	 * @return int: new index of List A
+	 */
+	private int moveContent(Vector C1, int i1,
+						    Vector C2, int i2){
+		// append or insert the selection to the content of list2 
+		if (i2 == C2.size()) {
+			C2.add(C1.get(i1));
+		} else {
+			C2.add(i2, C1.get(i1));
+		}
+		// remove selection of content in list1
+		C1.remove(i1);
+		if (i1 == C1.size()) i1--;
+		return i1;
+	}
+	
 	/**
 	 * This method initializes jButtonDel	
 	 * 	
@@ -251,46 +272,45 @@ public class MelangeJFrame extends JFrame {
 			jButtonDel.setToolTipText(messages.getString("movePage2Buffer"));
 			jButtonDel.addActionListener(new java.awt.event.ActionListener() {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
-					int index1 = 0;
-					int index2 = 0;
-					if (jList2.isSelectionEmpty() == true){
-						index2 = jList2.getModel().getSize();
-					} else {
-						index2 = jList2.getSelectedIndex() + 1;
-					}
-					//System.out.println("index2 " + index2);
-
-					if (jList1.isSelectionEmpty() == false) {
-						index1 = jList1.getSelectedIndex();
-						// modify Labellist and Pagelist:
-						if (index2 == listContent2.size()) {
-							listContent2.add(listContent1.get(index1));
-							pageList2.add(pageList1.get(index1));
-						} else {
-							listContent2.add(index2, listContent1.get(index1));
-							pageList2.add(index2, pageList1.get(index1));
-						}
-						listContent1.remove(index1);
-						pageList1.remove(index1);
-						if (index1 == listContent1.size()) index1--;
-						// I don't know why this is necessaray, 
-						//   but jList1 and jList2 doesn't realize the changes without this ".setListData"
-						jList1.setListData(listContent1); 
-						jList2.setListData(listContent2);  
-						// Update the graphical representation
-						jList1.setSelectedIndex(index1);						
-						jList1.ensureIndexIsVisible(index1);
-						jList2.setSelectedIndex(index2);						
-						jList2.ensureIndexIsVisible(index2);
-					}
-					jList1.repaint();
-					jList2.repaint();
+					onMovePages2Buffer();
 				}
 			});
 		}
 		return jButtonDel;
 	}
 
+	private void onMovePages2Buffer(){
+		int idx[] = null;
+		int index2 = 0;
+		if (jList2.isSelectionEmpty() == true){
+			index2 = jList2.getModel().getSize();
+		} else {
+			index2 = jList2.getSelectedIndex() + 1;
+		}
+
+		if (jList1.isSelectionEmpty() == false) {
+			idx = jList1.getSelectedIndices();
+
+			// move the selected item of "Main List" to "Buffer List"
+			for (int i=(idx.length-1); i>=0; i--) {
+				moveContent(listContent1, idx[i], 
+				   	 		listContent2, index2);
+			}
+
+			jList1.setListData(listContent1); 
+			jList2.setListData(listContent2);  
+
+			// Update the graphical representation
+			for (int i=0; i<idx.length; i++){
+				idx[i] = index2 + i;
+			}
+			jList2.setSelectedIndices(idx);					
+			jList2.ensureIndexIsVisible(idx[idx.length-1]);
+		}
+		jList1.repaint();
+		jList2.repaint();
+	}
+	
 	/**
 	 * This method initializes jButtonDown	
 	 * 	
@@ -520,18 +540,18 @@ public class MelangeJFrame extends JFrame {
 						jButtonRotateLeft.setEnabled(false);
 						jButtonRotateRight.setEnabled(false);
 					} else {
-						int index1 = jList1.getSelectedIndex();
+						int[] idx = jList1.getSelectedIndices();
 						jButtonDel.setEnabled(true);
 						jButtonRotateLeft.setEnabled(true);
 						jButtonRotateRight.setEnabled(true);						
-						if (index1 == 0) {
+						if (idx[0] == 0) {
 							jButtonUp.setEnabled(false);
 							jButtonUpToolbar.setEnabled(false);
 						} else {
 							jButtonUp.setEnabled(true);
 							jButtonUpToolbar.setEnabled(true);
 						}
-						if (index1 == jList1.getModel().getSize()-1) {
+						if (idx[idx.length-1] == jList1.getModel().getSize()-1) {
 							jButtonDown.setEnabled(false);
 							jButtonDownToolbar.setEnabled(false);
 						} else {
@@ -540,9 +560,8 @@ public class MelangeJFrame extends JFrame {
 						}
 						if (indexOfPreviewPane == jTabbedPane.getSelectedIndex()){
 							try {
-								showPreviewJP((PageNode)pageList1.get(index1));
+								showPreviewJP((PageNode)listContent1.get(idx[0]));
 							} catch (Exception e1) {
-								// TODO Automatisch erstellter Catch-Block
 								e1.printStackTrace();
 							}
 						}
@@ -857,9 +876,8 @@ public class MelangeJFrame extends JFrame {
 							int index1 = jList1.getSelectedIndex();
 							if (index1>-1) {
 								try {
-									showPreviewJP((PageNode)pageList1.get(index1));
+									showPreviewJP((PageNode)listContent1.get(index1));
 								} catch (Exception e1) {
-									// TODO Automatisch erstellter Catch-Block
 									e1.printStackTrace();
 								}
 							}
@@ -1028,13 +1046,11 @@ public class MelangeJFrame extends JFrame {
 	        	try {
 					bufferfile = chooser.getSelectedFile().getCanonicalPath();
 				} catch (IOException e) {
-					// TODO Automatisch erstellter Catch-Block
 					e.printStackTrace();
 				} 
 				try {
-					getThumbnailsFromFileJP(bufferfile, jList2, listContent2, pageList2);
+					getThumbnailsFromFileJP(bufferfile, jList2, listContent2);
 				} catch (IOException e) {
-					// TODO Automatisch erstellter Catch-Block
 					e.printStackTrace();
 				} catch (PdfSecurityException e) {
 					JOptionPane.showMessageDialog(MelangeJFrame.this,
@@ -1042,7 +1058,6 @@ public class MelangeJFrame extends JFrame {
 							  messages.getString("warning"),
 							  JOptionPane.WARNING_MESSAGE);
 				} catch (Exception e) {
-					// TODO Automatisch erstellter Catch-Block
 					e.printStackTrace();
 				}
 	    }
@@ -1053,11 +1068,9 @@ public class MelangeJFrame extends JFrame {
 		this.setTitle(projectName + ": " + infileName);
 		listContent1.clear();
 		jList1.removeAll();
-		pageList1.clear();
 		try {
-			getThumbnailsFromFileJP(infileName, jList1, listContent1, pageList1);
+			getThumbnailsFromFileJP(infileName, jList1, listContent1);
 		} catch (IOException e) {
-			// TODO Automatisch erstellter Catch-Block
 			e.printStackTrace();
 		} catch (PdfSecurityException e) {
 			JOptionPane.showMessageDialog(MelangeJFrame.this,
@@ -1065,7 +1078,6 @@ public class MelangeJFrame extends JFrame {
 					  messages.getString("warning"),
 					  JOptionPane.WARNING_MESSAGE);
 		} catch (Exception e) {
-			// TODO Automatisch erstellter Catch-Block
 			e.printStackTrace();
 		}
 	}
@@ -1081,7 +1093,6 @@ public class MelangeJFrame extends JFrame {
 	        	try {
 					infileName = chooser.getSelectedFile().getCanonicalPath();
 				} catch (IOException e) {
-					// TODO Automatisch erstellter Catch-Block
 					e.printStackTrace();
 				} 
 				openFileMain(infileName);
@@ -1090,46 +1101,46 @@ public class MelangeJFrame extends JFrame {
 
 	private void onList1Down(){
 		
-		int index1;
-		JLabel label;
-		PageNode pagenode;
-		if (jList1.isSelectionEmpty() == false) {
-			index1 = jList1.getSelectedIndex();
-			// Labellist: replace the selected element with next element
-			label = (JLabel)listContent1.get(index1);
-			listContent1.set(index1, listContent1.get(index1 + 1));
-			listContent1.set(index1 + 1, label);
-			// Pagelist: replace the selected element with next element
-			pagenode = (PageNode)pageList1.get(index1);
-			pageList1.set(index1, pageList1.get(index1 + 1));
-			pageList1.set(index1 + 1, pagenode);
+		//int index1;
+		int idx[] = jList1.getSelectedIndices();
+		int lastIdx = idx[idx.length-1];
+		PageNode node = null;
+		if (lastIdx < (listContent1.size()-1)) {
+			// listContent: replace the selected element with next element
+			for (int i=(idx.length-1); i>=0; i--){
+				node = (PageNode) listContent1.get(idx[i]);
+				listContent1.set(idx[i], listContent1.get(idx[i]+1));
+				listContent1.set(idx[i]+1, node);
+			}
 			// Update the graphical representation
-			jList1.setSelectedIndex(index1 + 1);						
-			jList1.ensureIndexIsVisible(index1 + 1);
+			for (int i=0; i<idx.length; i++){
+				idx[i] = idx[i] + 1;
+			}
+			jList1.setSelectedIndices(idx);
+			//jList1.setSelectedIndex(idx[0] + 1);						
+			jList1.ensureIndexIsVisible(lastIdx + 1);
 			jList1.updateUI();
-			//jList1.repaint();
 		}
 	}
 
 	private void onList1Up(){		
-		int index1;
-		JLabel label;
-		PageNode pagenode;
-		if (jList1.isSelectionEmpty() == false) {
-			index1 = jList1.getSelectedIndex();
-			// Labellist: replace the selected element with previous element
-			label = (JLabel)listContent1.get(index1);
-			listContent1.set(index1, listContent1.get(index1 - 1));
-			listContent1.set(index1 - 1, label);
-			// Pagelist: replace the selected element with previous element
-			pagenode = (PageNode)pageList1.get(index1);
-			pageList1.set(index1, pageList1.get(index1 - 1));
-			pageList1.set(index1 - 1, pagenode);
+		PageNode node = null;
+		int idx[] = jList1.getSelectedIndices();
+		if (idx[0] > 0) {
+			// Labellist: replace each selected element with its preceding element
+			for (int i=0; i<idx.length; i++){
+				node = (PageNode) listContent1.get(idx[i]);
+				listContent1.set(idx[i], listContent1.get(idx[i]-1));
+				listContent1.set(idx[i]-1, node);
+			}
+
 			// Update the graphical representation
-			jList1.setSelectedIndex(index1 - 1);						
-			jList1.ensureIndexIsVisible(index1 - 1);
+			for (int i=0; i<idx.length; i++){
+				idx[i] = idx[i] - 1;
+			}
+			jList1.setSelectedIndices(idx);
+			jList1.ensureIndexIsVisible(idx[0] - 1);
 			jList1.updateUI();
-			//jList1.repaint();
 		}
 	}
 
@@ -1138,71 +1149,34 @@ public class MelangeJFrame extends JFrame {
 		listContent1.clear();
 		jList1.removeAll();
 		jList1.setListData(listContent1);
-		pageList1.clear();
 		infileName = "";
 		this.setTitle(projectName + ": " + infileName);
 		//System.out.println("Main list cleared,\nfile name cleared.");
 	}
 
 	private void onRotate(int CWorCCW){
-		int index1;
 		if (jList1.isSelectionEmpty() == false) {
-			index1 = jList1.getSelectedIndex();
-			
-			String filename = ((PageNode) pageList1.get(index1)).file;
-			// Need the file to get the 'short' filename out of the canonical filename.
-			//    Is there a better way to do this?
-	   		File file = new File(filename);
-	   		int pagenumber = ((PageNode) pageList1.get(index1)).pagenumber;
-	   		int rotation = ((PageNode) pageList1.get(index1)).rotation;
-	   		
-			// Labellist: rotate element
-			JLabel jlabel = (JLabel) listContent1.get(index1);
-			ImageIcon imgIcon = (ImageIcon) jlabel.getIcon();
-			BufferedImage bimage = (BufferedImage) imgIcon.getImage();
-	        switch (CWorCCW){
-		        case DIRECTION.CCW:
-		    		//System.out.println("CCW rotation initiated.");
-					imgIcon = new ImageIcon(rotate90CCW(bimage));
-					if (rotation == 0) 
-						rotation = 270;
-					else 
-						rotation = rotation - 90;
-					break;
-		        case DIRECTION.CW:
-		    		//System.out.println("CW rotation initiated.");
-					imgIcon = new ImageIcon(rotate90CW(bimage));
-					rotation = (rotation + 90) % 360;
-					break;
-		        default: 
-		            throw new IllegalArgumentException( "Unknown Operator!" ); 
-	        }
-			
-			jlabel = new JLabel("<" +file.getName() + "> " + messages.getString("page") + " " + pagenumber, 
-					   			imgIcon, 
-					   			SwingConstants.LEFT);
-			listContent1.set(index1, jlabel);
-			
-			// Pagelist: rotate element
-       		pageList1.set(index1, new PageNode(filename, pagenumber, rotation));
-       		//System.out.println(filename + " Page " + pagenumber + " rotation " + rotation);
+
+			int[] index1 = jList1.getSelectedIndices();			
+
+			// rotate the selected items of "Main List"
+			for (int i=0; i<index1.length; i++) {
+				((PageNode)listContent1.get(index1[i])).rotate(CWorCCW);
+			}
      		
 			// Update the graphical representation
-			jList1.setSelectedIndex(index1);						
-			jList1.ensureIndexIsVisible(index1);
+			jList1.ensureIndexIsVisible(index1[0]);
 			jList1.updateUI();
 			jList1.repaint();
 
 			// Update the preview, if the preview panel is selected in the tabbed pane.
 			if (indexOfPreviewPane == jTabbedPane.getSelectedIndex()){
 				try {
-					showPreviewJP((PageNode)pageList1.get(index1));
+					showPreviewJP((PageNode)listContent1.get(index1[0]));
 				} catch (Exception e1) {
-					// TODO Automatisch erstellter Catch-Block
 					e1.printStackTrace();
 				}
 			}
-
 		}
 	}
 
@@ -1228,7 +1202,6 @@ public class MelangeJFrame extends JFrame {
 						this.infileName = fileName;
 						this.setTitle(projectName + ": " + fileName);		
 					} catch (IOException e) {
-						// TODO Automatisch erstellter Catch-Block
 						e.printStackTrace();
 					}
 		    } else
@@ -1249,10 +1222,8 @@ public class MelangeJFrame extends JFrame {
 		try {
 			if (saveIt) saveFile(fileName);
 		} catch (IOException e) {
-			// TODO Automatisch erstellter Catch-Block
 			e.printStackTrace();
 		} catch (DocumentException e) {
-			// TODO Automatisch erstellter Catch-Block
 			e.printStackTrace();
 		}
 	}
@@ -1265,11 +1236,9 @@ public class MelangeJFrame extends JFrame {
 	private void getThumbnailsFromFileJP(
 						String filename, 
 						JList jList,         // the JList object 
-						Vector listContent,  // the content of the JList object
-						ArrayList pageList)  // a list of pages that we'd like to display in our JList 
+						Vector listContent)  // the content of the JList object
 	throws Exception{
 		
-		int rotation;
 		pdfDecoder = new PdfDecoder();
 	    pdfDecoder.openPdfFile(filename);
 	    if (pdfDecoder.isEncrypted()) 
@@ -1287,6 +1256,7 @@ public class MelangeJFrame extends JFrame {
         BufferedImage bufferedImage = null;
         Image scaledImage = null;
         ImageIcon imageIcon = null;
+        PageNode pdfNode = null;
         
         //Runtime r = Runtime.getRuntime();
 
@@ -1320,19 +1290,23 @@ public class MelangeJFrame extends JFrame {
     	    //     (It's not a good idea to create the image icon with the scaled image directly,
     	    //      we will get a heap space error after about 30 thumbnails)
        		imageIcon = new ImageIcon(bufferedImage);
-       		// Add a JLable to the list.
-        	listContent.add(new JLabel("<" +file.getName() + "> " + messages.getString("page") + " " + ipage, 
-       								   imageIcon, 
-       								   SwingConstants.LEFT));
-        	// Add a node to the page list.
-       		rotation = pdfDecoder.getPdfPageData().getRotation(ipage);
-       		pageList.add(new PageNode(filename, ipage, rotation));
-       		// Print some info to the standard output.
-    		System.out.println("Thumbnail of "
+       		
+       		// Add a node to the page list.
+       		pdfNode = new PageNode();
+       		pdfNode.setText("<" +file.getName() + "> " + messages.getString("page") + " " + ipage);
+       		pdfNode.setIcon(imageIcon);
+       		pdfNode.setHorizontalAlignment(SwingConstants.LEFT);
+       		pdfNode.setFilename(filename);
+       		pdfNode.setPagenumber(ipage);
+       		pdfNode.setRotation(pdfDecoder.getPdfPageData().getRotation(ipage));
+       		
+        	listContent.add(pdfNode);
+    		
+        	System.out.println("Thumbnail of "
     				           + "<" +file.getName() + "> "
     				           + messages.getString("page") 
        				           + " " + ipage
-       				           + ", rotation=" + rotation
+       				           + ", rotation=" + pdfNode.rotation
        				           + ", pixel [" + bufferedImage.getWidth()  + "," + bufferedImage.getHeight() + "]" 
        				           //+ ", free memory=" + r.freeMemory()
        				           );
@@ -1407,14 +1381,14 @@ public class MelangeJFrame extends JFrame {
 		PdfCopy writer = new PdfCopy(pdfDoc, new FileOutputStream(tmpfile.getCanonicalPath()));
 		pdfDoc.open();
 		PageNode node = null;
-		for (int i = 0; i < pageList1.size(); i++){
-			node = (PageNode)pageList1.get(i);
-			reader = new PdfReader(node.file);
+		for (int i = 0; i < listContent1.size(); i++){
+			node = (PageNode)listContent1.get(i);
+			reader = new PdfReader(node.filename);
 			dict = reader.getPageN(node.pagenumber);
 			dict.put(PdfName.ROTATE, new PdfNumber(node.rotation));
 			writer.addPage(writer.getImportedPage(reader,node.pagenumber));
 			reader.close(); // close input file
-			System.out.println("Page " + node.pagenumber + "  File:" + node.file + "  Rotation:" + node.rotation);
+			System.out.println("Page " + node.pagenumber + "  File:" + node.filename + "  Rotation:" + node.rotation);
 		}
 		pdfDoc.close(); // close Helper Class
 		writer.close(); // close output file
@@ -1439,7 +1413,7 @@ public class MelangeJFrame extends JFrame {
 	private void showPreviewJP(PageNode node) throws Exception{
 		double zoom = 1;
 		jPanePreview.closePdfFile();
-	    jPanePreview.openPdfFile(node.file);
+	    jPanePreview.openPdfFile(node.filename);
         
         //get the width and height for the doc at the default zoom 
         Rectangle rectPDF = new Rectangle(0,0,
@@ -1551,7 +1525,6 @@ public class MelangeJFrame extends JFrame {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
 					listContent1.clear();
 					jList1.removeAll();
-					pageList1.clear();
 					jList1.setListData(listContent1);
 					jList1.updateUI();
 					//System.out.println("Main list cleared.");
@@ -1574,7 +1547,6 @@ public class MelangeJFrame extends JFrame {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
 					listContent2.clear();
 					jList2.removeAll();
-					pageList2.clear();
 					jList2.setListData(listContent2);
 					jList2.updateUI();
 					//System.out.println("Buffer list cleared.");
@@ -1634,35 +1606,7 @@ public class MelangeJFrame extends JFrame {
 			});
 		}
 		return jButtonRotateLeft;
-	}
-	
-	private BufferedImage rotate90CCW(BufferedImage bi)
-	{
-		int width = bi.getWidth();
-		int height = bi.getHeight();
-		
-		BufferedImage biRot = new BufferedImage(height, width, bi.getType());
-		
-		for(int i=0; i<width; i++)
-			for(int j=0; j<height; j++)
-				biRot.setRGB(j, width-1-i, bi.getRGB(i, j));
-		
-		return biRot;
-	}
-
-	private BufferedImage rotate90CW(BufferedImage bi)
-	{
-		int width = bi.getWidth();
-		int height = bi.getHeight();
-		
-		BufferedImage biRot = new BufferedImage(height, width, bi.getType());
-		
-		for(int i=0; i<width; i++)
-			for(int j=0; j<height; j++)
-				biRot.setRGB(height-1-j, i, bi.getRGB(i, j));
-		
-		return biRot;
-	}
+	}	
 
 	/**
 	 * This method initializes jMenuItemFileAddBuffer	

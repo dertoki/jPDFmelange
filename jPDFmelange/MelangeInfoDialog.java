@@ -67,7 +67,7 @@ public class MelangeInfoDialog extends JDialog {
 		this.setContentPane(getJContentPane());
 		ResourceBundle message = MelangeJFrame.messages;
 		this.setTitle(message.getString("about") + " " + MelangeJFrame.projectName);
-		this.setBounds(new Rectangle(0, 0, 537, 360));
+		this.setBounds(new Rectangle(0, 0, 537, 376));
 		this.setLocationRelativeTo(this.getOwner());
 		jTextAreaLibraryInfo.append(MelangeJFrame.projectName + " " +
 				                    MelangeJFrame.projectVersion + "\n" +
