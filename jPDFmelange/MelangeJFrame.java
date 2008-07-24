@@ -24,10 +24,8 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
 import java.awt.Dimension;
-import java.awt.Graphics2D;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
-import java.awt.Image;
 import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
@@ -48,7 +46,6 @@ import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
-import javax.swing.JList;
 import javax.swing.JMenu;
 import javax.swing.JMenuBar;
 import javax.swing.JMenuItem;
@@ -62,7 +59,6 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 
 import org.jpedal.PdfDecoder;
-import org.jpedal.exception.PdfSecurityException;
 
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
@@ -80,11 +76,11 @@ public class MelangeJFrame extends JFrame {
 	private static final long serialVersionUID = 4042464615276354878L;
 	
 	public static final String projectName = "jPDFmelange";
-	public static final String projectVersion = "0.1.10";
+	public static final String projectVersion = "0.1.11b";
 	public static String propertiesFileName = System.getProperty("user.dir").concat(System.getProperty("file.separator")).concat("melange.rc");
-	String bufferfile = "";
-	String infileName  = "";
-	String currentDirectoryPath = "";
+	public static String canonicalBufferFileName = "";
+	public static String canonicalMainFileName  = "";
+	static String currentDirectoryPath = "";
 
 	// Properties set in propertiesFile
     static int iconHeight = 70; // in pixels
@@ -102,7 +98,6 @@ public class MelangeJFrame extends JFrame {
     private Vector listContent2 = new Vector();  //  @jve:decl-index=0:
     int indexOfPreviewPane;
 	public static ResourceBundle messages = null;  //  @jve:decl-index=0:
-	private PdfDecoder pdfDecoder = null;
 
 	// GUI Elemets
 	protected Object frame;
@@ -119,7 +114,7 @@ public class MelangeJFrame extends JFrame {
 	private JPanel jContentPane = null;
 	private JMenuBar jJMenuBar = null;
 
-	private JToolBar jJToolBarBar = null;
+	public  JToolBar jToolBar = null;
 	private PDFjList jList1 = null;
     private PDFjList jList2 = null; 
 	private JMenu jMenuEdit = null;
@@ -145,7 +140,7 @@ public class MelangeJFrame extends JFrame {
 	private JButton jButtonRotateLeft = null;
 	private JMenuItem jMenuItemFileAddBuffer = null;
 	private JMenuItem jMenuItemPreferences = null;
-	 
+
 	/**
 	 * This is the default constructor
 	 * @throws IOException 
@@ -154,7 +149,7 @@ public class MelangeJFrame extends JFrame {
 	public MelangeJFrame() {
 		super();
 		initialize();
-		this.setTitle(projectName + ": " + infileName);
+		this.setTitle(projectName + ": " + canonicalMainFileName);
 		listContent1.clear();
 		jList1.removeAll();
 	}
@@ -421,7 +416,7 @@ public class MelangeJFrame extends JFrame {
 			jButtonFileSave.setToolTipText(messages.getString("saveFile"));
 			jButtonFileSave.addActionListener(new java.awt.event.ActionListener() {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
-					onFileSave(infileName);
+					onFileSave(canonicalMainFileName);
 				}
 			});
 		}
@@ -478,7 +473,7 @@ public class MelangeJFrame extends JFrame {
 		if (jContentPane == null) {
 			jContentPane = new JPanel();
 			jContentPane.setLayout(new BorderLayout());
-			jContentPane.add(getJJToolBarBar(), BorderLayout.NORTH);
+			jContentPane.add(getJToolBar(), BorderLayout.NORTH);
 			jContentPane.add(getJSplitPane(), BorderLayout.CENTER);
 		}
 		return jContentPane;
@@ -506,19 +501,20 @@ public class MelangeJFrame extends JFrame {
 	 * 	
 	 * @return javax.swing.JToolBar	
 	 */
-	private JToolBar getJJToolBarBar() {
-		if (jJToolBarBar == null) {
-			jJToolBarBar = new JToolBar();
-			jJToolBarBar.add(getJButtonFileOpen());
-			jJToolBarBar.add(getJButtonFileNew());
-			jJToolBarBar.add(getJButtonFileSave());
-			jJToolBarBar.add(getJButtonFileAddBuffer());
-			jJToolBarBar.add(getJButtonUpToolbar());
-			jJToolBarBar.add(getJButtonDownToolbar());
-			jJToolBarBar.add(getJButtonRotateRight());
-			jJToolBarBar.add(getJButtonRotateLeft());
+	private JToolBar getJToolBar() {
+		if (jToolBar == null) {
+			jToolBar = new JToolBar();
+			jToolBar.setFloatable(false);
+			jToolBar.add(getJButtonFileOpen());
+			jToolBar.add(getJButtonFileNew());
+			jToolBar.add(getJButtonFileSave());
+			jToolBar.add(getJButtonFileAddBuffer());
+			jToolBar.add(getJButtonUpToolbar());
+			jToolBar.add(getJButtonDownToolbar());
+			jToolBar.add(getJButtonRotateRight());
+			jToolBar.add(getJButtonRotateLeft());
 		}
-		return jJToolBarBar;
+		return jToolBar;
 	}
 
 	/**
@@ -725,7 +721,7 @@ public class MelangeJFrame extends JFrame {
 			jMenuItemFileSave.setText(messages.getString("saveFile"));
 			jMenuItemFileSave.addActionListener(new java.awt.event.ActionListener() {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
-					onFileSave(infileName);
+					onFileSave(canonicalMainFileName);
 				}
 			});
 			jMenuItemFileSave.setAccelerator(KeyStroke.getKeyStroke( KeyEvent.VK_S, ActionEvent.CTRL_MASK));
@@ -1044,42 +1040,22 @@ public class MelangeJFrame extends JFrame {
 	    int returnVal = chooser.showOpenDialog(MelangeJFrame.this);
 	    if(returnVal == JFileChooser.APPROVE_OPTION) {
 	        	try {
-					bufferfile = chooser.getSelectedFile().getCanonicalPath();
+					canonicalBufferFileName = chooser.getSelectedFile().getCanonicalPath();
 				} catch (IOException e) {
 					e.printStackTrace();
 				} 
-				try {
-					getThumbnailsFromFileJP(bufferfile, jList2, listContent2);
-				} catch (IOException e) {
-					e.printStackTrace();
-				} catch (PdfSecurityException e) {
-					JOptionPane.showMessageDialog(MelangeJFrame.this,
-							  messages.getString(e.getLocalizedMessage()),
-							  messages.getString("warning"),
-							  JOptionPane.WARNING_MESSAGE);
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
+				CreateThumbnailsJP task = new CreateThumbnailsJP(this, canonicalBufferFileName, jList2, listContent2);
+				task.start();
 	    }
 	}
 
 	public void openFileMain(String filename){
-		infileName = filename;
-		this.setTitle(projectName + ": " + infileName);
+		canonicalMainFileName = filename;
+		this.setTitle(projectName + ": " + canonicalMainFileName);
 		listContent1.clear();
 		jList1.removeAll();
-		try {
-			getThumbnailsFromFileJP(infileName, jList1, listContent1);
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (PdfSecurityException e) {
-			JOptionPane.showMessageDialog(MelangeJFrame.this,
-					  messages.getString(e.getLocalizedMessage()),
-					  messages.getString("warning"),
-					  JOptionPane.WARNING_MESSAGE);
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
+		CreateThumbnailsJP task = new CreateThumbnailsJP(this, canonicalMainFileName, jList1, listContent1);
+		task.start();
 	}
 
 	private void onFileOpenMain(){
@@ -1091,11 +1067,11 @@ public class MelangeJFrame extends JFrame {
 	    int returnVal = chooser.showOpenDialog(MelangeJFrame.this);
 	    if(returnVal == JFileChooser.APPROVE_OPTION) {
 	        	try {
-					infileName = chooser.getSelectedFile().getCanonicalPath();
+					canonicalMainFileName = chooser.getSelectedFile().getCanonicalPath();
 				} catch (IOException e) {
 					e.printStackTrace();
 				} 
-				openFileMain(infileName);
+				openFileMain(canonicalMainFileName);
 	    }
 	}
 
@@ -1149,8 +1125,8 @@ public class MelangeJFrame extends JFrame {
 		listContent1.clear();
 		jList1.removeAll();
 		jList1.setListData(listContent1);
-		infileName = "";
-		this.setTitle(projectName + ": " + infileName);
+		canonicalMainFileName = "";
+		this.setTitle(projectName + ": " + canonicalMainFileName);
 		//System.out.println("Main list cleared,\nfile name cleared.");
 	}
 
@@ -1199,7 +1175,7 @@ public class MelangeJFrame extends JFrame {
 		    if(returnVal == JFileChooser.APPROVE_OPTION) {
 		        	try {
 						fileName = chooser.getSelectedFile().getCanonicalPath();
-						this.infileName = fileName;
+						canonicalMainFileName = fileName;
 						this.setTitle(projectName + ": " + fileName);		
 					} catch (IOException e) {
 						e.printStackTrace();
@@ -1228,150 +1204,11 @@ public class MelangeJFrame extends JFrame {
 		}
 	}
 
-	/**
-	 * This method creates the thumbnails from each page of a pdf and saves is to a JList.
-	 * It uses the jPedal Renderer org.jpedal.pdfDecoder
-	 * @throws Exception 
-	 */
-	private void getThumbnailsFromFileJP(
-						String filename, 
-						JList jList,         // the JList object 
-						Vector listContent)  // the content of the JList object
-	throws Exception{
-		
-		pdfDecoder = new PdfDecoder();
-	    pdfDecoder.openPdfFile(filename);
-	    if (pdfDecoder.isEncrypted()) 
-	    	throw new PdfSecurityException("messageEncryptionNotSupported");
-	    int nPages = pdfDecoder.getPageCount();
-        // i need the file simply to find the last name in the pathname's name sequence.
-   		File file = new File(filename);
-		currentDirectoryPath = file.getParent();
-		
-        Cursor cursor = getCursor();
-        setCursor(new Cursor(Cursor.WAIT_CURSOR));
-        
-        int pageWidth = 0;
-        final int criticalPageWidth = 300; // in mm
-        BufferedImage bufferedImage = null;
-        Image scaledImage = null;
-        ImageIcon imageIcon = null;
-        PageNode pdfNode = null;
-        
-        //Runtime r = Runtime.getRuntime();
-
-        for (int ipage = 1; ipage < (nPages+1); ipage++) {
-        	//
-        	//  getPageAsThubnail is much faster, but this method is depreciated
-        	//     and the rendered image isn't transparent.
-        	//
-           	//bufferedImg = pdfDecoder.getPageAsThumbnail(ipage, iconheight);
-        	//
-        	
-    	    // Get the page width in millimeter.
-            pageWidth = Math.round(pdfDecoder.getPdfPageData().getMediaBoxWidth(ipage) * (25.4f/72f));
-            // Reduce the page scale for larger page formats.
-            //    This reduces the quality but avoid heap space problems.
-            if (pageWidth > criticalPageWidth) {
-            	pdfDecoder.setPageParameters(0.5f, ipage, -1);
-            }
-    	    bufferedImage = pdfDecoder.getPageAsTransparentImage(ipage);
-    	    // Get a scaled image with defined height, 
-    	    //     unfortunately this is not a buffered image. 
-    	    if (bufferedImage.getHeight() > bufferedImage.getWidth())
-    	    	scaledImage = bufferedImage.getScaledInstance(iconHeight, -1, imageScalingAlgorithm);
-    	    else
-    	    	scaledImage = bufferedImage.getScaledInstance(-1, iconHeight, imageScalingAlgorithm);
-    	    // Create a buffered image with this scaled image.
-    	    bufferedImage = new BufferedImage(scaledImage.getWidth(null), scaledImage.getHeight(null) , BufferedImage.TYPE_INT_ARGB);
-    	    Graphics2D g2 = bufferedImage.createGraphics();
-    	    g2.drawImage(scaledImage, 0, 0,null);
-    	    // Create a image icon with the created buffered image.
-    	    //     (It's not a good idea to create the image icon with the scaled image directly,
-    	    //      we will get a heap space error after about 30 thumbnails)
-       		imageIcon = new ImageIcon(bufferedImage);
-       		
-       		// Add a node to the page list.
-       		pdfNode = new PageNode();
-       		pdfNode.setText("<" +file.getName() + "> " + messages.getString("page") + " " + ipage);
-       		pdfNode.setIcon(imageIcon);
-       		pdfNode.setHorizontalAlignment(SwingConstants.LEFT);
-       		pdfNode.setFilename(filename);
-       		pdfNode.setPagenumber(ipage);
-       		pdfNode.setRotation(pdfDecoder.getPdfPageData().getRotation(ipage));
-       		
-        	listContent.add(pdfNode);
-    		
-        	System.out.println("Thumbnail of "
-    				           + "<" +file.getName() + "> "
-    				           + messages.getString("page") 
-       				           + " " + ipage
-       				           + ", rotation=" + pdfNode.rotation
-       				           + ", pixel [" + bufferedImage.getWidth()  + "," + bufferedImage.getHeight() + "]" 
-       				           //+ ", free memory=" + r.freeMemory()
-       				           );
-        }
-        pdfDecoder.closePdfFile();
-		jList.setListData(listContent);
-		setCursor(cursor);
-	}
-	
-	/**
-	 * This method creates the thumbnails from each page of a pdf and saves is to a JList.
-	 * It uses the Sun Renderer com.sun.pdfview.
-	private void getThumbnailsFromFileSR(
-						String filename, 
-						JList jList, 
-						Vector<JLabel> listContent, 
-						ArrayList<PageNode> pageList) 
-	throws IOException{
-
-		//load a pdf from a byte buffer
-        File file = new File(filename);
-        RandomAccessFile raf = new RandomAccessFile(file, "r");
-        FileChannel channel = raf.getChannel();
-        ByteBuffer buf = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-        PDFFile pdffile = new PDFFile(buf);
-        int iPages = pdffile.getNumPages();
-        ImageIcon image = null;
-        Image img = null;
-    	PDFPage page = null;
-
-        Cursor cursor = getCursor();
-        setCursor(new Cursor(Cursor.WAIT_CURSOR));
-        for (int i = 0; i < iPages; i++) {
-	        // draw the first page to an image
-        	page = pdffile.getPage(i+1);
-			//get the width and height for the doc at the default zoom 
-			Rectangle rect = new Rectangle(0,0,
-			        (int)page.getBBox().getWidth(),
-			        (int)page.getBBox().getHeight());
-			
-			//generate the image
-			img = page.getImage(
-			        (int)(rect.width*zoom), (int)(rect.height*zoom), //width & height
-			        rect, // clip rect
-			        null, // null for the ImageObserver
-			        false, // fill background with white
-			        true  // block until drawing is done
-			        );
-	        	
-	        //Load the pet images and create an array of indexes.
-       		image = new ImageIcon(img);
-       		listContent.add(new JLabel(messages.getString("page") + " " + ((Integer)(i+1)).toString(), image, SwingConstants.LEFT));
-       		pageList.add(new PageNode(filename, i, 0));
-        }
-		jList.setListData(listContent);
-		raf.close();		
-		setCursor(cursor);
-	}
-	 */
-
 	private void saveFile(String fileName) throws IOException, DocumentException{
 		File file =     new File(fileName);
 		File tmpfile =  File.createTempFile("Mixer", null, file.getParentFile());
-		String bakfilePrefix = file.getName().substring(0, file.getName().lastIndexOf('.'));
-		File bakfile =  new File(file.getParent().concat(System.getProperty("file.separator")).concat(bakfilePrefix).concat(".bak"));
+		String bakFileName = fileName.substring(0,fileName.lastIndexOf('.')).concat(".bak");
+		File bakfile =  new File(bakFileName);
 
 		// itext usage
 		System.out.println("Writing new content to <" + tmpfile.getName() + ">");
@@ -1412,6 +1249,11 @@ public class MelangeJFrame extends JFrame {
 	 */
 	private void showPreviewJP(PageNode node) throws Exception{
 		double zoom = 1;
+
+		// GUI stuff
+		Cursor cursor = getCursor();
+		setCursor(new Cursor(Cursor.WAIT_CURSOR));
+		
 		jPanePreview.closePdfFile();
 	    jPanePreview.openPdfFile(node.filename);
         
@@ -1447,7 +1289,10 @@ public class MelangeJFrame extends JFrame {
         jPanePreview.invalidate();
 	    jPanePreview.repaint();
         //System.out.println("Page " + node.pagenumber + " ratioPDF "+ ratioPDF + " ratioPanel " + ratioPanel + " zoom " + zoom);
-	}
+
+	    // GUI stuff, may be bad style - but works - 
+		setCursor(cursor);
+}
 
 	/**
 	 * This method creates a preview of a pdf page on a jLabel.
@@ -1644,6 +1489,5 @@ public class MelangeJFrame extends JFrame {
 		}
 		return jMenuItemPreferences;
 	}
-
 	
 }  //  @jve:decl-index=0:visual-constraint="10,10"
