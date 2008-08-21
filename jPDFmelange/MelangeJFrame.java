@@ -40,8 +40,8 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.ResourceBundle;
-import java.util.Vector;
 
+import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JFileChooser;
@@ -68,6 +68,11 @@ import com.lowagie.text.pdf.PdfName;
 import com.lowagie.text.pdf.PdfNumber;
 import com.lowagie.text.pdf.PdfReader;
 
+import edu.stanford.ejalbert.BrowserLauncher;
+import edu.stanford.ejalbert.exception.BrowserLaunchingInitializingException;
+import edu.stanford.ejalbert.exception.UnsupportedOperatingSystemException;
+import javax.swing.JCheckBoxMenuItem;
+
 public class MelangeJFrame extends JFrame {
 
 	/**
@@ -76,26 +81,29 @@ public class MelangeJFrame extends JFrame {
 	private static final long serialVersionUID = 4042464615276354878L;
 	
 	public static final String projectName = "jPDFmelange";
-	public static final String projectVersion = "0.1.11b";
-	public static String propertiesFileName = System.getProperty("user.dir").concat(System.getProperty("file.separator")).concat("melange.rc");
-	public static String canonicalBufferFileName = "";
-	public static String canonicalMainFileName  = "";
-	static String currentDirectoryPath = "";
+	public static final String projectVersion = "0.1.11c";
+	public String propertiesFileName = System.getProperty("user.dir").concat(System.getProperty("file.separator")).concat("melange.rc");
+	public String canonicalBufferFileName = "";
+	public String canonicalMainFileName  = "";
+	public String currentDirectoryPath = "";
+	public boolean showButtonsPanel = false;
+	private ArrayListTransferHandler arrayListHandler;
+
 
 	// Properties set in propertiesFile
-    static int iconHeight = 70; // in pixels
-    static int imageScalingAlgorithm = BufferedImage.SCALE_SMOOTH;
+    public int iconHeight = 70; // in pixels
+    public int imageScalingAlgorithm = BufferedImage.SCALE_SMOOTH;
 	public static Locale locale = Locale.getDefault();
 	public static ArrayList localeTable = new ArrayList();
     /*
      * Declaration for Java 5 (Java SE 1.5 or higher).  
      * The Sun Renderer com.sun.pdfview needs Java 5 (Java SE 1.5 or higher).
      * 
-    	private Vector<PageNode> listContent1 = new Vector<PageNode>();  //  @jve:decl-index=0:
-    	private Vector<PageNode> listContent2 = new Vector<PageNode>();  //  @jve:decl-index=0:
+    	private Vector<PageNode> listContentMain = new Vector<PageNode>();  //  @jve:decl-index=0:
+    	private Vector<PageNode> listContentBuffer = new Vector<PageNode>();  //  @jve:decl-index=0:
     */
-    private Vector listContent1 = new Vector();  //  @jve:decl-index=0:
-    private Vector listContent2 = new Vector();  //  @jve:decl-index=0:
+    private DefaultListModel listContentMain = new DefaultListModel();  //  @jve:decl-index=0:
+    private DefaultListModel listContentBuffer = new DefaultListModel();  //  @jve:decl-index=0:
     int indexOfPreviewPane;
 	public static ResourceBundle messages = null;  //  @jve:decl-index=0:
 
@@ -115,8 +123,8 @@ public class MelangeJFrame extends JFrame {
 	private JMenuBar jJMenuBar = null;
 
 	public  JToolBar jToolBar = null;
-	private PDFjList jList1 = null;
-    private PDFjList jList2 = null; 
+	public PDFjList jListMain = null;
+    public PDFjList jListBuffer = null; 
 	private JMenu jMenuEdit = null;
 	private JMenu jMenuFile = null;
 	private JMenu jMenuHelp = null;
@@ -127,12 +135,12 @@ public class MelangeJFrame extends JFrame {
 	private JMenuItem jMenuItemSaveAs = null;
 	private JMenu jMenuPreferences = null;
 	private JPanel jPanelBufferEditor = null;
-	private JPanel jPanelButtons = null;
-	private JScrollPane jScrollPane1 = null;
-	private JScrollPane jScrollPane2 = null;
+	public JPanel jPanelButtons = null;
+	private JScrollPane jScrollPaneLeft = null;
+	private JScrollPane jScrollPaneRight = null;
 	private JSplitPane jSplitPane = null;
 	private JTabbedPane jTabbedPane = null;
-	private JMenuItem jMenuItemInfo = null;
+	private JMenuItem jMenuItemAbout = null;
 	private JMenuItem jMenuItemClearMain = null;
 	private JMenuItem jMenuItemClearBuffer = null;
 	private PdfDecoder jPanePreview = null;
@@ -140,6 +148,10 @@ public class MelangeJFrame extends JFrame {
 	private JButton jButtonRotateLeft = null;
 	private JMenuItem jMenuItemFileAddBuffer = null;
 	private JMenuItem jMenuItemPreferences = null;
+
+	private JMenuItem jMenuItemOnline = null;
+
+	public JCheckBoxMenuItem jCheckBoxMenuItemShowMoveButtons = null;
 
 	/**
 	 * This is the default constructor
@@ -150,8 +162,8 @@ public class MelangeJFrame extends JFrame {
 		super();
 		initialize();
 		this.setTitle(projectName + ": " + canonicalMainFileName);
-		listContent1.clear();
-		jList1.removeAll();
+		listContentMain.clear();
+		jListMain.removeAll();
 	}
 
 	/* (Kein Javadoc)
@@ -189,10 +201,10 @@ public class MelangeJFrame extends JFrame {
 	/**
 	 * This method moves selected pages from the "Buffer List" to "Main List" 	
 	 * The "Buffer List" is represented with 
-	 *                  jList2: PDFjList (extends JList)
+	 *                  jListBuffer: PDFjList (extends JList)
 	 *                  listcontent2: Vector<PageNode>
 	 * The "Main List" is represented with 
-	 *                  jList1: PDFjList (extends JList)
+	 *                  jListMain: PDFjList (extends JList)
 	 *                  listcontent1: Vector<PageNode>
 	 * 
 	 * @return void	
@@ -202,32 +214,30 @@ public class MelangeJFrame extends JFrame {
 		int[] idx;
 
 		// fix the current index the "Main List"
-		if (jList1.isSelectionEmpty() == true){
-			index1 = jList1.getModel().getSize();
+		if (jListMain.isSelectionEmpty() == true){
+			index1 = jListMain.getModel().getSize();
 		} else {
-			index1 = jList1.getSelectedIndex() + 1;
+			index1 = jListMain.getSelectedIndex() + 1;
 		}
 
-		if (jList2.isSelectionEmpty() == false) {
-			idx = jList2.getSelectedIndices();
+		if (jListBuffer.isSelectionEmpty() == false) {
+			idx = jListBuffer.getSelectedIndices();
 		
 			// move the selected item of "Buffer List" to "Main List"
 			for (int i=(idx.length-1); i>=0; i--) {
-				moveContent(listContent2, idx[i], 
-				   	 		listContent1, index1);
+				moveContent(listContentBuffer, idx[i], 
+				   	 		listContentMain, index1);
 			}
 			
-			jList1.setListData(listContent1); 
-			jList2.setListData(listContent2);  
 			// Update the graphical representation
 			for (int i=0; i<idx.length; i++){
 				idx[i] = index1 + i;
 			}
-			jList1.setSelectedIndices(idx);						
-			jList1.ensureIndexIsVisible(idx[idx.length-1]);
+			jListMain.setSelectedIndices(idx);						
+			jListMain.ensureIndexIsVisible(idx[idx.length-1]);
 		}
-		jList1.repaint();
-		jList2.repaint();
+		jListMain.repaint();
+		jListBuffer.repaint();
 	}
 
 	/**
@@ -239,11 +249,11 @@ public class MelangeJFrame extends JFrame {
 	 * 
 	 * @return int: new index of List A
 	 */
-	private int moveContent(Vector C1, int i1,
-						    Vector C2, int i2){
+	private int moveContent(DefaultListModel C1, int i1,
+						    DefaultListModel C2, int i2){
 		// append or insert the selection to the content of list2 
 		if (i2 == C2.size()) {
-			C2.add(C1.get(i1));
+			C2.addElement(C1.get(i1));
 		} else {
 			C2.add(i2, C1.get(i1));
 		}
@@ -277,33 +287,30 @@ public class MelangeJFrame extends JFrame {
 	private void onMovePages2Buffer(){
 		int idx[] = null;
 		int index2 = 0;
-		if (jList2.isSelectionEmpty() == true){
-			index2 = jList2.getModel().getSize();
+		if (jListBuffer.isSelectionEmpty() == true){
+			index2 = jListBuffer.getModel().getSize();
 		} else {
-			index2 = jList2.getSelectedIndex() + 1;
+			index2 = jListBuffer.getSelectedIndex() + 1;
 		}
 
-		if (jList1.isSelectionEmpty() == false) {
-			idx = jList1.getSelectedIndices();
+		if (jListMain.isSelectionEmpty() == false) {
+			idx = jListMain.getSelectedIndices();
 
 			// move the selected item of "Main List" to "Buffer List"
 			for (int i=(idx.length-1); i>=0; i--) {
-				moveContent(listContent1, idx[i], 
-				   	 		listContent2, index2);
+				moveContent(listContentMain, idx[i], 
+				   	 		listContentBuffer, index2);
 			}
-
-			jList1.setListData(listContent1); 
-			jList2.setListData(listContent2);  
 
 			// Update the graphical representation
 			for (int i=0; i<idx.length; i++){
 				idx[i] = index2 + i;
 			}
-			jList2.setSelectedIndices(idx);					
-			jList2.ensureIndexIsVisible(idx[idx.length-1]);
+			jListBuffer.setSelectedIndices(idx);					
+			jListBuffer.ensureIndexIsVisible(idx[idx.length-1]);
 		}
-		jList1.repaint();
-		jList2.repaint();
+		jListMain.repaint();
+		jListBuffer.repaint();
 	}
 	
 	/**
@@ -518,16 +525,17 @@ public class MelangeJFrame extends JFrame {
 	}
 
 	/**
-	 * This method initializes jList1	
+	 * This method initializes jListMain	
 	 * 	
-	 * @return jPDFpellmell.PDFjList	
+	 * @return jPDFmelange.PDFjList	
 	 */
-	private PDFjList getJList1() {
-		if (jList1 == null) {
-			jList1 = new PDFjList();
-			jList1.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+	private PDFjList getJListMain() {
+		if (jListMain == null) {
+			jListMain = new PDFjList();
+			jListMain.setModel(listContentMain); 
+			jListMain.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
 				public void valueChanged(javax.swing.event.ListSelectionEvent e) {
-					if (jList1.isSelectionEmpty() == true) { 
+					if (jListMain.isSelectionEmpty() == true) { 
 						jButtonDel.setEnabled(false);
 						jButtonUp.setEnabled(false);
 						jButtonDown.setEnabled(false);
@@ -536,7 +544,7 @@ public class MelangeJFrame extends JFrame {
 						jButtonRotateLeft.setEnabled(false);
 						jButtonRotateRight.setEnabled(false);
 					} else {
-						int[] idx = jList1.getSelectedIndices();
+						int[] idx = jListMain.getSelectedIndices();
 						jButtonDel.setEnabled(true);
 						jButtonRotateLeft.setEnabled(true);
 						jButtonRotateRight.setEnabled(true);						
@@ -547,7 +555,7 @@ public class MelangeJFrame extends JFrame {
 							jButtonUp.setEnabled(true);
 							jButtonUpToolbar.setEnabled(true);
 						}
-						if (idx[idx.length-1] == jList1.getModel().getSize()-1) {
+						if (idx[idx.length-1] == jListMain.getModel().getSize()-1) {
 							jButtonDown.setEnabled(false);
 							jButtonDownToolbar.setEnabled(false);
 						} else {
@@ -556,7 +564,7 @@ public class MelangeJFrame extends JFrame {
 						}
 						if (indexOfPreviewPane == jTabbedPane.getSelectedIndex()){
 							try {
-								showPreviewJP((PageNode)listContent1.get(idx[0]));
+								showPreviewJP((PageNode)listContentMain.get(idx[0]));
 							} catch (Exception e1) {
 								e1.printStackTrace();
 							}
@@ -564,43 +572,47 @@ public class MelangeJFrame extends JFrame {
 					}
 				}
 			});
-			jList1.addFocusListener(new java.awt.event.FocusAdapter() {
+			jListMain.addFocusListener(new java.awt.event.FocusAdapter() {
 				public void focusGained(java.awt.event.FocusEvent e) {
-					jList1.setSelectionBackground(new Color(184, 207, 229));
-					jList2.setSelectionBackground(new Color(220, 220, 220));
+					jListMain.setSelectionBackground(new Color(184, 207, 229));
+					jListBuffer.setSelectionBackground(new Color(220, 220, 220));
 				}
 			});
-		}
-		return jList1;
+			jListMain.setDragEnabled(true);
+			jListMain.setTransferHandler(arrayListHandler);
+		}	
+		return jListMain;
 	}
 
 	/**
-	 * This method initializes jList2	
+	 * This method initializes jListBuffer	
 	 * 	
 	 * @return jPDFmelange.PDFjList	
 	 */
-	private PDFjList getJList2() {
-		if (jList2 == null) {
-			jList2 = new PDFjList();
-			jList2.setBackground(new Color(230, 230, 230));
-			jList2.setSelectionBackground(new Color(220, 220, 220));
-			jList2.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
+	private PDFjList getJListBuffer() {
+		if (jListBuffer == null) {
+			jListBuffer = new PDFjList();
+			jListBuffer.setModel(listContentBuffer); 
+			jListBuffer.setBackground(new Color(230, 230, 230));
+			jListBuffer.setSelectionBackground(new Color(220, 220, 220));
+			jListBuffer.addListSelectionListener(new javax.swing.event.ListSelectionListener() {
 				public void valueChanged(javax.swing.event.ListSelectionEvent e) {
-					if (jList2.isSelectionEmpty() == true) 
+					if (jListBuffer.isSelectionEmpty() == true) 
 						jButtonAdd.setEnabled(false);
 					else
 						jButtonAdd.setEnabled(true);
 				}
 			});
-			jList2.addFocusListener(new java.awt.event.FocusAdapter() {
+			jListBuffer.addFocusListener(new java.awt.event.FocusAdapter() {
 				public void focusGained(java.awt.event.FocusEvent e) {
-					jList1.setSelectionBackground(new Color(235, 235, 235));
-					jList2.setSelectionBackground(new Color(184, 207, 229));
+					jListMain.setSelectionBackground(new Color(235, 235, 235));
+					jListBuffer.setSelectionBackground(new Color(184, 207, 229));
 				}
 			});
-			
+			jListBuffer.setDragEnabled(true);
+			jListBuffer.setTransferHandler(arrayListHandler);
 		}
-		return jList2;
+		return jListBuffer;
 	}
 
 	/**
@@ -648,7 +660,8 @@ public class MelangeJFrame extends JFrame {
 			jMenuHelp.setText(messages.getString("help"));
 			jMenuHelp.setHorizontalTextPosition(SwingConstants.LEADING);
 			jMenuHelp.setHorizontalAlignment(SwingConstants.LEADING);
-			jMenuHelp.add(getJMenuItemInfo());
+			jMenuHelp.add(getJMenuItemOnline());
+			jMenuHelp.add(getJMenuItemAbout());
 		}
 		return jMenuHelp;
 	}
@@ -758,6 +771,7 @@ public class MelangeJFrame extends JFrame {
 			jMenuPreferences = new JMenu();
 			jMenuPreferences.setText(messages.getString("preferences"));
 			jMenuPreferences.add(getJMenuItemPreferences());
+			jMenuPreferences.add(getJCheckBoxMenuItemShowMoveButtons());
 		}
 		return jMenuPreferences;
 	}
@@ -772,7 +786,7 @@ public class MelangeJFrame extends JFrame {
 			jPanelBufferEditor = new JPanel();
 			jPanelBufferEditor.setLayout(new BorderLayout());
 			jPanelBufferEditor.add(getJPanelButtons(), BorderLayout.BEFORE_LINE_BEGINS);
-			jPanelBufferEditor.add(getJScrollPane2(), BorderLayout.CENTER);
+			jPanelBufferEditor.add(getJScrollPaneRight(), BorderLayout.CENTER);
 		}
 		return jPanelBufferEditor;
 	}
@@ -805,39 +819,40 @@ public class MelangeJFrame extends JFrame {
 			jPanelButtons.add(getJButtonDel(), gridBagConstraints11);
 			jPanelButtons.add(getJButtonDown(), gridBagConstraints2);
 			jPanelButtons.add(getJButtonUp(), gridBagConstraints4);
+			jPanelButtons.setVisible(showButtonsPanel);
 		}
 		return jPanelButtons;
 	};
 
 	/**
-	 * This method initializes jScrollPane1	
+	 * This method initializes jScrollPaneLeft	
 	 * 	
 	 * @return javax.swing.JScrollPane	
 	 */
-	private JScrollPane getJScrollPane1() {
-		if (jScrollPane1 == null) {
-			jScrollPane1 = new JScrollPane();
-			jScrollPane1.setName("jScrollPane1");
-			jScrollPane1.setBorder(null);
-			jScrollPane1.setViewportView(getJList1());
-			jScrollPane1.setPreferredSize(new Dimension(0, 0));
+	private JScrollPane getJScrollPaneLeft() {
+		if (jScrollPaneLeft == null) {
+			jScrollPaneLeft = new JScrollPane();
+			jScrollPaneLeft.setName("jScrollPaneLeft");
+			jScrollPaneLeft.setBorder(null);
+			jScrollPaneLeft.setViewportView(getJListMain());
+			jScrollPaneLeft.setPreferredSize(new Dimension(0, 0));
 		}
-		return jScrollPane1;
+		return jScrollPaneLeft;
 	}
 
 	/**
-	 * This method initializes jScrollPane2	
+	 * This method initializes jScrollPaneRight	
 	 * 	
 	 * @return javax.swing.JScrollPane	
 	 */
-	private JScrollPane getJScrollPane2() {
-		if (jScrollPane2 == null) {
-			jScrollPane2 = new JScrollPane();
-			jScrollPane2.setPreferredSize(new Dimension(0, 0));
-			jScrollPane2.setName("jScrollPane2");
-			jScrollPane2.setViewportView(getJList2());
+	private JScrollPane getJScrollPaneRight() {
+		if (jScrollPaneRight == null) {
+			jScrollPaneRight = new JScrollPane();
+			jScrollPaneRight.setPreferredSize(new Dimension(0, 0));
+			jScrollPaneRight.setName("jScrollPaneRight");
+			jScrollPaneRight.setViewportView(getJListBuffer());
 		}
-		return jScrollPane2;
+		return jScrollPaneRight;
 	}
 	
 	/**
@@ -849,7 +864,7 @@ public class MelangeJFrame extends JFrame {
 		if (jSplitPane == null) {
 			jSplitPane = new JSplitPane();
 			jSplitPane.setDividerLocation(310);
-			jSplitPane.setLeftComponent(getJScrollPane1());
+			jSplitPane.setLeftComponent(getJScrollPaneLeft());
 			jSplitPane.setRightComponent(getJTabbedPane());
 		}
 		return jSplitPane;
@@ -869,10 +884,10 @@ public class MelangeJFrame extends JFrame {
 			jTabbedPane.addChangeListener(new javax.swing.event.ChangeListener() {
 				public void stateChanged(javax.swing.event.ChangeEvent e) {
 					if (indexOfPreviewPane == jTabbedPane.getSelectedIndex()){
-							int index1 = jList1.getSelectedIndex();
+							int index1 = jListMain.getSelectedIndex();
 							if (index1>-1) {
 								try {
-									showPreviewJP((PageNode)listContent1.get(index1));
+									showPreviewJP((PageNode)listContentMain.get(index1));
 								} catch (Exception e1) {
 									e1.printStackTrace();
 								}
@@ -941,6 +956,7 @@ public class MelangeJFrame extends JFrame {
 		messages = ResourceBundle.getBundle("resources/MelangeMessages",MelangeJFrame.locale);
 		System.out.println("-- using locale " + messages.getLocale().getDisplayName() + " --\n");
 				
+		arrayListHandler = new ArrayListTransferHandler();
 		//
 		// Initailize the main window.
 		//
@@ -963,7 +979,7 @@ public class MelangeJFrame extends JFrame {
 	 */
 	private void getProperties() {
 		String propertyStr = null;
-		int propertyInt;
+		int propertyInt = -1;
 		try {
 			Properties melangeProperties = new Properties();
 			// Java > java 1.4 we can use a FileReader
@@ -972,6 +988,11 @@ public class MelangeJFrame extends JFrame {
 			FileInputStream propInFile = new FileInputStream(propertiesFileName);
 			melangeProperties.load(propInFile);
 			melangeProperties.list(System.out);
+			
+			// Get property ShowMoveButtons
+			propertyStr = melangeProperties.getProperty("ShowButtonsPanel", String.valueOf(showButtonsPanel));
+			showButtonsPanel = Boolean.parseBoolean(propertyStr);
+				
 			
 			// Get the property IconHeight, check limits.
 			propertyStr = melangeProperties.getProperty("IconHeight", String.valueOf(iconHeight));
@@ -1011,6 +1032,7 @@ public class MelangeJFrame extends JFrame {
 		try {
 			Properties melangeProperties = new Properties();
 			// Set the properties.
+			melangeProperties.setProperty("ShowButtonsPanel", String.valueOf(showButtonsPanel));
 			melangeProperties.setProperty("IconHeight", String.valueOf(iconHeight));
 			melangeProperties.setProperty("ImageScalingAlgorithm", String.valueOf(imageScalingAlgorithm));
 			melangeProperties.setProperty("LocaleLanguage", locale.getLanguage());
@@ -1043,18 +1065,23 @@ public class MelangeJFrame extends JFrame {
 					canonicalBufferFileName = chooser.getSelectedFile().getCanonicalPath();
 				} catch (IOException e) {
 					e.printStackTrace();
-				} 
-				CreateThumbnailsJP task = new CreateThumbnailsJP(this, canonicalBufferFileName, jList2, listContent2);
-				task.start();
+				}
+				openFileBuffer(canonicalBufferFileName);
 	    }
 	}
 
+	public void openFileBuffer(String filename){
+		CreateThumbnailsJP task = new CreateThumbnailsJP(this, filename, jListBuffer);
+		task.start();
+	}
+	
 	public void openFileMain(String filename){
 		canonicalMainFileName = filename;
 		this.setTitle(projectName + ": " + canonicalMainFileName);
-		listContent1.clear();
-		jList1.removeAll();
-		CreateThumbnailsJP task = new CreateThumbnailsJP(this, canonicalMainFileName, jList1, listContent1);
+		listContentMain.clear();
+		jListMain.removeAll();
+
+		CreateThumbnailsJP task = new CreateThumbnailsJP(this, filename, jListMain);
 		task.start();
 	}
 
@@ -1078,77 +1105,76 @@ public class MelangeJFrame extends JFrame {
 	private void onList1Down(){
 		
 		//int index1;
-		int idx[] = jList1.getSelectedIndices();
+		int idx[] = jListMain.getSelectedIndices();
 		int lastIdx = idx[idx.length-1];
 		PageNode node = null;
-		if (lastIdx < (listContent1.size()-1)) {
+		if (lastIdx < (listContentMain.size()-1)) {
 			// listContent: replace the selected element with next element
 			for (int i=(idx.length-1); i>=0; i--){
-				node = (PageNode) listContent1.get(idx[i]);
-				listContent1.set(idx[i], listContent1.get(idx[i]+1));
-				listContent1.set(idx[i]+1, node);
+				node = (PageNode) listContentMain.get(idx[i]);
+				listContentMain.set(idx[i], listContentMain.get(idx[i]+1));
+				listContentMain.set(idx[i]+1, node);
 			}
 			// Update the graphical representation
 			for (int i=0; i<idx.length; i++){
 				idx[i] = idx[i] + 1;
 			}
-			jList1.setSelectedIndices(idx);
-			//jList1.setSelectedIndex(idx[0] + 1);						
-			jList1.ensureIndexIsVisible(lastIdx + 1);
-			jList1.updateUI();
+			jListMain.setSelectedIndices(idx);
+			//jListMain.setSelectedIndex(idx[0] + 1);						
+			jListMain.ensureIndexIsVisible(lastIdx + 1);
+			jListMain.updateUI();
 		}
 	}
 
 	private void onList1Up(){		
 		PageNode node = null;
-		int idx[] = jList1.getSelectedIndices();
+		int idx[] = jListMain.getSelectedIndices();
 		if (idx[0] > 0) {
 			// Labellist: replace each selected element with its preceding element
 			for (int i=0; i<idx.length; i++){
-				node = (PageNode) listContent1.get(idx[i]);
-				listContent1.set(idx[i], listContent1.get(idx[i]-1));
-				listContent1.set(idx[i]-1, node);
+				node = (PageNode) listContentMain.get(idx[i]);
+				listContentMain.set(idx[i], listContentMain.get(idx[i]-1));
+				listContentMain.set(idx[i]-1, node);
 			}
 
 			// Update the graphical representation
 			for (int i=0; i<idx.length; i++){
 				idx[i] = idx[i] - 1;
 			}
-			jList1.setSelectedIndices(idx);
-			jList1.ensureIndexIsVisible(idx[0] - 1);
-			jList1.updateUI();
+			jListMain.setSelectedIndices(idx);
+			jListMain.ensureIndexIsVisible(idx[0] - 1);
+			jListMain.updateUI();
 		}
 	}
 
 	private void onMainFileNew(){
 		
-		listContent1.clear();
-		jList1.removeAll();
-		jList1.setListData(listContent1);
+		listContentMain.clear();
+		jListMain.removeAll();
 		canonicalMainFileName = "";
 		this.setTitle(projectName + ": " + canonicalMainFileName);
 		//System.out.println("Main list cleared,\nfile name cleared.");
 	}
 
 	private void onRotate(int CWorCCW){
-		if (jList1.isSelectionEmpty() == false) {
+		if (jListMain.isSelectionEmpty() == false) {
 
-			int[] index1 = jList1.getSelectedIndices();			
+			int[] index1 = jListMain.getSelectedIndices();			
 
 			// rotate the selected items of "Main List"
 			for (int i=0; i<index1.length; i++) {
-				((PageNode)listContent1.get(index1[i])).rotate(CWorCCW);
+				((PageNode)listContentMain.get(index1[i])).rotate(CWorCCW);
 			}
      		
 			// Update the graphical representation
-			jList1.ensureIndexIsVisible(index1[0]);
-			jList1.updateUI();
-			jList1.repaint();
+			jListMain.ensureIndexIsVisible(index1[0]);
+			jListMain.updateUI();
+			jListMain.repaint();
 
 			// Update the preview, if the preview panel is selected in the tabbed pane.
 			if (indexOfPreviewPane == jTabbedPane.getSelectedIndex()){
 				try {
-					showPreviewJP((PageNode)listContent1.get(index1[0]));
+					showPreviewJP((PageNode)listContentMain.get(index1[0]));
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
@@ -1159,7 +1185,7 @@ public class MelangeJFrame extends JFrame {
 	private void onFileSave(String fileName){
 		boolean saveIt = false;
 		
-		if (listContent1.isEmpty()) {
+		if (listContentMain.isEmpty()) {
 			JOptionPane.showMessageDialog(MelangeJFrame.this,
 				    					  messages.getString("messageNoContent"),
 				    					  messages.getString("warning"),
@@ -1218,8 +1244,8 @@ public class MelangeJFrame extends JFrame {
 		PdfCopy writer = new PdfCopy(pdfDoc, new FileOutputStream(tmpfile.getCanonicalPath()));
 		pdfDoc.open();
 		PageNode node = null;
-		for (int i = 0; i < listContent1.size(); i++){
-			node = (PageNode)listContent1.get(i);
+		for (int i = 0; i < listContentMain.size(); i++){
+			node = (PageNode)listContentMain.get(i);
 			reader = new PdfReader(node.filename);
 			dict = reader.getPageN(node.pagenumber);
 			dict.put(PdfName.ROTATE, new PdfNumber(node.rotation));
@@ -1339,22 +1365,22 @@ public class MelangeJFrame extends JFrame {
 	 */
 
 	/**
-	 * This method initializes jMenuItemInfo	
+	 * This method initializes jMenuItemAbout	
 	 * 	
 	 * @return javax.swing.JMenuItem	
 	 */
-	private JMenuItem getJMenuItemInfo() {
-		if (jMenuItemInfo == null) {
-			jMenuItemInfo = new JMenuItem();
-			jMenuItemInfo.setText("Info");
-			jMenuItemInfo.addActionListener(new java.awt.event.ActionListener() {
+	private JMenuItem getJMenuItemAbout() {
+		if (jMenuItemAbout == null) {
+			jMenuItemAbout = new JMenuItem();
+			jMenuItemAbout.setText(messages.getString("about"));
+			jMenuItemAbout.addActionListener(new java.awt.event.ActionListener() {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
 					MelangeInfoDialog mInfo = new MelangeInfoDialog(MelangeJFrame.this);
 					mInfo.setVisible(true);
 				}
 			});
 		}
-		return jMenuItemInfo;
+		return jMenuItemAbout;
 	}
 
 	/**
@@ -1368,10 +1394,9 @@ public class MelangeJFrame extends JFrame {
 			jMenuItemClearMain.setText(messages.getString("erasePages"));
 			jMenuItemClearMain.addActionListener(new java.awt.event.ActionListener() {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
-					listContent1.clear();
-					jList1.removeAll();
-					jList1.setListData(listContent1);
-					jList1.updateUI();
+					listContentMain.clear();
+					jListMain.removeAll();
+					jListMain.updateUI();
 					//System.out.println("Main list cleared.");
 				}
 			});
@@ -1390,10 +1415,9 @@ public class MelangeJFrame extends JFrame {
 			jMenuItemClearBuffer.setText(messages.getString("clearBuffer"));
 			jMenuItemClearBuffer.addActionListener(new java.awt.event.ActionListener() {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
-					listContent2.clear();
-					jList2.removeAll();
-					jList2.setListData(listContent2);
-					jList2.updateUI();
+					listContentBuffer.clear();
+					jListBuffer.removeAll();
+					jListBuffer.updateUI();
 					//System.out.println("Buffer list cleared.");
 				}
 			});
@@ -1488,6 +1512,57 @@ public class MelangeJFrame extends JFrame {
 			});
 		}
 		return jMenuItemPreferences;
+	}
+
+	/**
+	 * This method initializes jMenuItemOnline	
+	 * 	
+	 * @return javax.swing.JMenuItem	
+	 */
+	private JMenuItem getJMenuItemOnline() {
+		if (jMenuItemOnline == null) {
+			jMenuItemOnline = new JMenuItem();
+			jMenuItemOnline.setText(messages.getString("online"));
+			jMenuItemOnline.addActionListener(new java.awt.event.ActionListener() {
+				public void actionPerformed(java.awt.event.ActionEvent e) {
+					try {
+						BrowserLauncher launcher = new BrowserLauncher();
+						launcher.openURLinBrowser("http://jpdfmelange.berlios.de");
+					} catch (BrowserLaunchingInitializingException e1) {
+						// TODO Automatisch erstellter Catch-Block
+						e1.printStackTrace();
+					} catch (UnsupportedOperatingSystemException e1) {
+						// TODO Automatisch erstellter Catch-Block
+						e1.printStackTrace();
+					}
+				}
+			});
+		}
+		return jMenuItemOnline;
+	}
+
+	/**
+	 * This method initializes jCheckBoxMenuItemShowMoveButtons	
+	 * 	
+	 * @return javax.swing.JCheckBoxMenuItem	
+	 */
+	private JCheckBoxMenuItem getJCheckBoxMenuItemShowMoveButtons() {
+		if (jCheckBoxMenuItemShowMoveButtons == null) {
+			jCheckBoxMenuItemShowMoveButtons = new JCheckBoxMenuItem();
+			jCheckBoxMenuItemShowMoveButtons.setText(messages.getString("ShowButtonsPanel"));
+			jCheckBoxMenuItemShowMoveButtons.setSelected(showButtonsPanel);
+			jCheckBoxMenuItemShowMoveButtons
+					.addItemListener(new java.awt.event.ItemListener() {
+						public void itemStateChanged(java.awt.event.ItemEvent e) {
+							if (jCheckBoxMenuItemShowMoveButtons.isSelected())
+								showButtonsPanel = true;
+							else
+								showButtonsPanel = false;
+							jPanelButtons.setVisible(showButtonsPanel);
+						}
+					});
+		}
+		return jCheckBoxMenuItemShowMoveButtons;
 	}
 	
 }  //  @jve:decl-index=0:visual-constraint="10,10"

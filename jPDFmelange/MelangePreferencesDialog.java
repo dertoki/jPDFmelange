@@ -19,25 +19,31 @@
  ***************************************************************************/
 package jPDFmelange;
 
+import java.awt.Dimension;
+import java.awt.Font;
 import java.awt.Frame;
+import java.awt.Point;
 import java.awt.Rectangle;
+import java.awt.SystemColor;
 import java.awt.image.BufferedImage;
+import java.util.Locale;
 
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
+import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
-import javax.swing.JComboBox;
-import java.awt.Font;
-import java.awt.SystemColor;
-import java.awt.Dimension;
-import java.awt.Point;
-import java.util.Locale;
 
 public class MelangePreferencesDialog extends JDialog {
 
-	private static final long serialVersionUID = 1L;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = -8991160732171375540L;
+	
+	private MelangeJFrame parent;
 
 	private JPanel jContentPane = null;
 
@@ -57,11 +63,16 @@ public class MelangePreferencesDialog extends JDialog {
 
 	private JComboBox jComboBoxLanguage = null;
 
+	private JCheckBox jCheckBoxShowButtonsPanel = null;
+
+	private JTextPane jTextPaneShowButtonsPanel = null;
+
 	/**
 	 * @param owner
 	 */
 	public MelangePreferencesDialog(Frame owner) {
 		super(owner);
+		this.parent = (MelangeJFrame) owner;
 		initialize();
 	}
 
@@ -75,7 +86,7 @@ public class MelangePreferencesDialog extends JDialog {
 		this.setTitle("jPDFmelange " + MelangeJFrame.messages.getString("options"));
 		this.setContentPane(getJContentPane());
 		this.setLocationRelativeTo(this.getOwner());
-		jTextFieldIconSize.setText(String.valueOf(MelangeJFrame.iconHeight));
+		jTextFieldIconSize.setText(String.valueOf(parent.iconHeight));
 		jComboBoxImageScale.addItem("SCALE_FAST");
 		jComboBoxImageScale.addItem("SCALE_SMOOTH");
 		jComboBoxImageScale.addItem("SCALE_AREA_AVERAGING");
@@ -86,7 +97,7 @@ public class MelangePreferencesDialog extends JDialog {
 				jComboBoxLanguage.setSelectedIndex(i);
 		}
 		
-	    switch (MelangeJFrame.imageScalingAlgorithm) {
+	    switch (parent.imageScalingAlgorithm) {
 		case BufferedImage.SCALE_FAST:
 			jComboBoxImageScale.setSelectedIndex(0);
 			break;
@@ -100,6 +111,8 @@ public class MelangePreferencesDialog extends JDialog {
 			jComboBoxImageScale.setSelectedIndex(1);
 			break;
 		}
+	    
+	    jCheckBoxShowButtonsPanel.setSelected(parent.showButtonsPanel);
 	}
 
 	/**
@@ -121,6 +134,8 @@ public class MelangePreferencesDialog extends JDialog {
 			jContentPane.add(getJTextPaneImageScale(), null);
 			jContentPane.add(getJTextPaneLanguage(), null);
 			jContentPane.add(getJComboBoxLanguage(), null);
+			jContentPane.add(getJCheckBoxShowButtonsPanel(), null);
+			jContentPane.add(getJTextPaneShowButtonsPanel(), null);
 		}
 		return jContentPane;
 	}
@@ -138,27 +153,35 @@ public class MelangePreferencesDialog extends JDialog {
 			jButtonOK.addActionListener(new java.awt.event.ActionListener() {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
 					try {
-						MelangeJFrame.iconHeight = Integer.parseInt(jTextFieldIconSize.getText());
+						parent.iconHeight = Integer.parseInt(jTextFieldIconSize.getText());
 					} catch (NumberFormatException e1) {
 						System.err.println("Incorrect formatting.");
 					}		
 					
 					switch (jComboBoxImageScale.getSelectedIndex()) {
 					case 0:
-						MelangeJFrame.imageScalingAlgorithm = BufferedImage.SCALE_FAST;
+						parent.imageScalingAlgorithm = BufferedImage.SCALE_FAST;
 						break;
 					case 1:
-						MelangeJFrame.imageScalingAlgorithm = BufferedImage.SCALE_SMOOTH;
+						parent.imageScalingAlgorithm = BufferedImage.SCALE_SMOOTH;
 						break;
 					case 2:
-						MelangeJFrame.imageScalingAlgorithm = BufferedImage.SCALE_AREA_AVERAGING;
+						parent.imageScalingAlgorithm = BufferedImage.SCALE_AREA_AVERAGING;
 						break;
 					default:
-						MelangeJFrame.imageScalingAlgorithm = BufferedImage.SCALE_SMOOTH;
+						parent.imageScalingAlgorithm = BufferedImage.SCALE_SMOOTH;
 						break;
 					}
 					
 					MelangeJFrame.locale = (Locale) MelangeJFrame.localeTable.get(jComboBoxLanguage.getSelectedIndex());
+					
+					if (jCheckBoxShowButtonsPanel.isSelected()){
+						parent.showButtonsPanel = true;
+					} else {
+						parent.showButtonsPanel = false;
+					}
+					parent.jCheckBoxMenuItemShowMoveButtons.setSelected(parent.showButtonsPanel);
+					parent.jPanelButtons.setVisible(parent.showButtonsPanel);
 					
 					MelangePreferencesDialog.this.setVisible(false);
 					MelangePreferencesDialog.this.dispose();
@@ -276,7 +299,7 @@ public class MelangePreferencesDialog extends JDialog {
 			jTextPaneLanguage.setLocation(new Point(15, 75));
 			jTextPaneLanguage.setSize(new Dimension(86, 25));
 			jTextPaneLanguage.setPreferredSize(new Dimension(82, 25));
-			jTextPaneLanguage.setBackground(SystemColor.window);
+			jTextPaneLanguage.setBackground(null);
 		}
 		return jTextPaneLanguage;
 	}
@@ -297,6 +320,41 @@ public class MelangePreferencesDialog extends JDialog {
 			jComboBoxLanguage.setFont(new Font("DejaVu Sans", Font.PLAIN, 12));
 		}
 		return jComboBoxLanguage;
+	}
+
+	/**
+	 * This method initializes jCheckBoxShowButtonsPanel	
+	 * 	
+	 * @return javax.swing.JCheckBox	
+	 */
+	private JCheckBox getJCheckBoxShowButtonsPanel() {
+		if (jCheckBoxShowButtonsPanel == null) {
+			jCheckBoxShowButtonsPanel = new JCheckBox();
+			jCheckBoxShowButtonsPanel.setLocation(new Point(195, 105));
+			jCheckBoxShowButtonsPanel.setBackground(SystemColor.window);
+			jCheckBoxShowButtonsPanel.setPreferredSize(new Dimension(200, 25));
+			jCheckBoxShowButtonsPanel.setSize(new Dimension(30, 25));
+		}
+		return jCheckBoxShowButtonsPanel;
+	}
+
+	/**
+	 * This method initializes jTextPaneShowButtonsPanel	
+	 * 	
+	 * @return javax.swing.JTextPane	
+	 */
+	private JTextPane getJTextPaneShowButtonsPanel() {
+		if (jTextPaneShowButtonsPanel == null) {
+			jTextPaneShowButtonsPanel = new JTextPane();
+			jTextPaneShowButtonsPanel.setEnabled(true);
+			jTextPaneShowButtonsPanel.setPreferredSize(new Dimension(82, 25));
+			jTextPaneShowButtonsPanel.setText(MelangeJFrame.messages.getString("ShowButtonsPanel"));
+			jTextPaneShowButtonsPanel.setEditable(false);
+			jTextPaneShowButtonsPanel.setLocation(new Point(15, 105));
+			jTextPaneShowButtonsPanel.setSize(new Dimension(180, 25));
+			jTextPaneShowButtonsPanel.setBackground(null);
+		}
+		return jTextPaneShowButtonsPanel;
 	}
 
 }  //  @jve:decl-index=0:visual-constraint="10,10"

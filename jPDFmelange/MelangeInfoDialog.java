@@ -36,10 +36,14 @@ import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTextArea;
 import javax.swing.SwingConstants;
+import java.awt.Font;
 
 public class MelangeInfoDialog extends JDialog {
 
-	private static final long serialVersionUID = 1L;
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 7392801504056306623L;
 	private JPanel jContentPane = null;
 	private JButton jButton = null;
 	private JTabbedPane jTabbedPane = null;
@@ -150,9 +154,9 @@ public class MelangeInfoDialog extends JDialog {
 	private JPanel getJPanelInfo() {
 		if (jPanelInfo == null) {
 			jPanelInfo = new JPanel();
-			jPanelInfo.setLayout(null);
+			jPanelInfo.setLayout(new BorderLayout());
 			jPanelInfo.setBackground(SystemColor.window);
-			jPanelInfo.add(getJTextAreaLibraryInfo(), null);
+			jPanelInfo.add(getJTextAreaLibraryInfo(), BorderLayout.CENTER);
 		}
 		return jPanelInfo;
 	}
@@ -201,8 +205,8 @@ public class MelangeInfoDialog extends JDialog {
 	private JTextArea getJTextAreaLibraryInfo() {
 		if (jTextAreaLibraryInfo == null) {
 			jTextAreaLibraryInfo = new JTextArea();
-			jTextAreaLibraryInfo.setBounds(new Rectangle(7, 6, 513, 265));
 			jTextAreaLibraryInfo.setBackground(SystemColor.window);
+			jTextAreaLibraryInfo.setFont(new Font("Dialog", Font.PLAIN, 12));
 			jTextAreaLibraryInfo.setEditable(false);
 		}
 		return jTextAreaLibraryInfo;

@@ -1,3 +1,22 @@
+/***************************************************************************
+ *   Copyright (C) 2008 by Tobias Tandetzki                                *
+ *   tandetzki.tobias@t-online.de                                          *
+ *                                                                         *
+ *   This program is free software; you can redistribute it and/or modify  *
+ *   it under the terms of the GNU General Public License as published by  *
+ *   the Free Software Foundation; either version 2 of the License, or     *
+ *   (at your option) any later version.                                   *
+ *                                                                         *
+ *   This program is distributed in the hope that it will be useful,       *
+ *   but WITHOUT ANY WARRANTY; without even the implied warranty of        *
+ *   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the         *
+ *   GNU General Public License for more details.                          *
+ *                                                                         *
+ *   You should have received a copy of the GNU General Public License     *
+ *   along with this program; if not, write to the                         *
+ *   Free Software Foundation, Inc.,                                       *
+ *   59 Temple Place - Suite 330, Boston, MA  02111-1307, USA.             *
+ ***************************************************************************/
 package jPDFmelange;
 
 import java.awt.Cursor;
@@ -6,14 +25,14 @@ import java.awt.Image;
 import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
-import java.util.Vector;
 
+import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
-import javax.swing.JFrame;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.SwingConstants;
+import javax.swing.SwingUtilities;
 
 import org.jpedal.PdfDecoder;
 import org.jpedal.exception.PdfSecurityException;
@@ -26,43 +45,68 @@ import org.jpedal.exception.PdfSecurityException;
 
 public class CreateThumbnailsJP extends Thread {
 	private PdfDecoder pdfDecoder = null;
-	String canonicalfilename;
-	JList jList; // the JList object
-	Vector listContent; // the content of the JList object
-	int nPages;
-	JFrame parent = null;
-	JProgressBar progressBar = null;
+	private String canonicalfilename = null;
+	private DefaultListModel listContent = null; // the content of the JList object
+	private int nPages = -1;
+	private int listOffset = -1;
+	private MelangeJFrame parent = null;
+	private JProgressBar progressBar = null;
+	private String filename = null;
+	private boolean insert = false;
 
-	CreateThumbnailsJP(JFrame parent, String filename, JList jList, Vector listContent) 
+	CreateThumbnailsJP(MelangeJFrame parent, String canonicalfilename, JList jList) 
 	{
-		this.canonicalfilename = filename;
-		this.jList = jList;
-		this.listContent = listContent;
 		this.parent = parent;
-		this.progressBar = new JProgressBar();
-		this.progressBar.setStringPainted(true);
-		((MelangeJFrame)parent).jToolBar.add(this.progressBar);
-		((MelangeJFrame)parent).jToolBar.validate();
+		File file = new File(canonicalfilename);
+		parent.currentDirectoryPath = file.getParent();
+		this.filename = file.getName();
+
+		this.canonicalfilename = canonicalfilename;
+		this.listContent = (DefaultListModel) jList.getModel();
+		this.listOffset = jList.getModel().getSize();
+
+
+		progressBar = new JProgressBar();
+		parent.jToolBar.add(progressBar);
+		parent.jToolBar.validate();
+		progressBar.setStringPainted(true);
+   		progressBar.setString(filename);
+   		progressBar.setVisible(true);
 	}
 
+	/**
+	 * Set the offset position where pages are inserted in the JList resp. listContent
+	 */
+	public void setInsertOffset(int listOffset){
+		this.listOffset = listOffset;
+		this.insert = true;
+	}
+	
 	public void run() {
 		try {
-			get();
+			synchronized (listContent) {
+				getThumbnails();
+			}
 		} catch (IOException e) {
 			e.printStackTrace();
-		} catch (PdfSecurityException e) {
-			JOptionPane.showMessageDialog(parent,
-					  MelangeJFrame.messages.getString(e.getLocalizedMessage()),
-					  MelangeJFrame.messages.getString("warning"),
-					  JOptionPane.WARNING_MESSAGE);
-			((MelangeJFrame)parent).jToolBar.remove(this.progressBar);
-			((MelangeJFrame)parent).jToolBar.validate();
+		} catch (final PdfSecurityException e) {
+			SwingUtilities.invokeLater( new Runnable() 
+	        { 
+	          public void run() { 
+	  			JOptionPane.showMessageDialog(parent,
+						  MelangeJFrame.messages.getString(e.getLocalizedMessage()),
+						  MelangeJFrame.messages.getString("warning"),
+						  JOptionPane.WARNING_MESSAGE);
+				progressBar.setVisible(false);
+				parent.jToolBar.remove(progressBar);
+	          } 
+	        } ); 
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
 	
-	private void get() throws Exception {
+	private void getThumbnails() throws Exception {
 		pdfDecoder = new PdfDecoder();
 		pdfDecoder.openPdfFile(canonicalfilename);
 		pdfDecoder.setEnableLegacyJPEGConversion(true);
@@ -70,17 +114,11 @@ public class CreateThumbnailsJP extends Thread {
 			throw new PdfSecurityException("messageEncryptionNotSupported");
 		nPages = pdfDecoder.getPageCount();
 
-		File file = new File(canonicalfilename);
-		MelangeJFrame.currentDirectoryPath = file.getParent();
-		String filename = file.getName();
-
 		// GUI stuff
 		Cursor cursor = parent.getCursor();
 		parent.setCursor(new Cursor(Cursor.WAIT_CURSOR));
-		progressBar.setMaximum(nPages);
-		progressBar.setString(filename);
-		progressBar.setValue(0);
-		progressBar.setVisible(true);
+   		progressBar.setMaximum(nPages);
+   		progressBar.setValue(0);
 
 		int pageWidth = 0;
 		final int criticalPageWidth = 300; // in mm
@@ -111,9 +149,9 @@ public class CreateThumbnailsJP extends Thread {
 			// Get a scaled image with defined height,
 			// unfortunately this is not a buffered image.
 			if (bufferedImage.getHeight() > bufferedImage.getWidth())
-				scaledImage = bufferedImage.getScaledInstance(MelangeJFrame.iconHeight, -1, MelangeJFrame.imageScalingAlgorithm);
+				scaledImage = bufferedImage.getScaledInstance(parent.iconHeight, -1, parent.imageScalingAlgorithm);
 			else
-				scaledImage = bufferedImage.getScaledInstance(-1, MelangeJFrame.iconHeight, MelangeJFrame.imageScalingAlgorithm);
+				scaledImage = bufferedImage.getScaledInstance(-1, parent.iconHeight, parent.imageScalingAlgorithm);
 			// Create a buffered image with this scaled image.
 			bufferedImage = new BufferedImage(scaledImage.getWidth(null),
 											  scaledImage.getHeight(null),
@@ -135,7 +173,10 @@ public class CreateThumbnailsJP extends Thread {
 			pdfNode.setPagenumber(ipage);
 			pdfNode.setRotation(pdfDecoder.getPdfPageData().getRotation(ipage));
 
-			listContent.add(pdfNode);
+			if (insert)
+				listContent.add(listOffset + ipage-1, pdfNode);
+			else
+				listContent.addElement(pdfNode);
 
 			progressBar.setValue(ipage);
 			System.out.println("Thumbnail of " + "<" + filename
@@ -147,12 +188,10 @@ public class CreateThumbnailsJP extends Thread {
 					);
 		}
 		pdfDecoder.closePdfFile();
-		jList.setListData(listContent);
 		
 		// GUI stuff, may be bad style - but works - 
 		parent.setCursor(cursor);
-		progressBar.setVisible(false);
-		((MelangeJFrame)parent).jToolBar.remove(this.progressBar);
-		((MelangeJFrame)parent).jToolBar.validate();
+   		progressBar.setVisible(false);
+		parent.jToolBar.remove(progressBar);
 	}
 }
