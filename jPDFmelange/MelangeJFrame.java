@@ -81,7 +81,7 @@ public class MelangeJFrame extends JFrame {
 	private static final long serialVersionUID = 4042464615276354878L;
 	
 	public static final String projectName = "jPDFmelange";
-	public static final String projectVersion = "0.1.11c";
+	public static final String projectVersion = "0.1.11";
 	public String propertiesFileName = System.getProperty("user.dir").concat(System.getProperty("file.separator")).concat("melange.rc");
 	public String canonicalBufferFileName = "";
 	public String canonicalMainFileName  = "";
@@ -163,7 +163,6 @@ public class MelangeJFrame extends JFrame {
 		initialize();
 		this.setTitle(projectName + ": " + canonicalMainFileName);
 		listContentMain.clear();
-		jListMain.removeAll();
 	}
 
 	/* (Kein Javadoc)
@@ -214,19 +213,18 @@ public class MelangeJFrame extends JFrame {
 		int[] idx;
 
 		// fix the current index the "Main List"
-		if (jListMain.isSelectionEmpty() == true){
+		if (jListMain.isSelectionEmpty()){
 			index1 = jListMain.getModel().getSize();
 		} else {
 			index1 = jListMain.getSelectedIndex() + 1;
 		}
 
-		if (jListBuffer.isSelectionEmpty() == false) {
+		if (!jListBuffer.isSelectionEmpty()) {
 			idx = jListBuffer.getSelectedIndices();
 		
-			// move the selected item of "Buffer List" to "Main List"
+			// move the selected item in "Buffer List" to "Main List"
 			for (int i=(idx.length-1); i>=0; i--) {
-				moveContent(listContentBuffer, idx[i], 
-				   	 		listContentMain, index1);
+				jListBuffer.move(idx[i], jListMain, index1);
 			}
 			
 			// Update the graphical representation
@@ -240,29 +238,6 @@ public class MelangeJFrame extends JFrame {
 		jListBuffer.repaint();
 	}
 
-	/**
-	 * This method moves content of List A to List B  	
-	 * The List A is represented with 
-	 *                  C1: Vector<PageNode>
-	 * The List B is represented with 
-	 *                  C2: Vector<PageNode>
-	 * 
-	 * @return int: new index of List A
-	 */
-	private int moveContent(DefaultListModel C1, int i1,
-						    DefaultListModel C2, int i2){
-		// append or insert the selection to the content of list2 
-		if (i2 == C2.size()) {
-			C2.addElement(C1.get(i1));
-		} else {
-			C2.add(i2, C1.get(i1));
-		}
-		// remove selection of content in list1
-		C1.remove(i1);
-		if (i1 == C1.size()) i1--;
-		return i1;
-	}
-	
 	/**
 	 * This method initializes jButtonDel	
 	 * 	
@@ -287,19 +262,18 @@ public class MelangeJFrame extends JFrame {
 	private void onMovePages2Buffer(){
 		int idx[] = null;
 		int index2 = 0;
-		if (jListBuffer.isSelectionEmpty() == true){
+		if (jListBuffer.isSelectionEmpty()){
 			index2 = jListBuffer.getModel().getSize();
 		} else {
 			index2 = jListBuffer.getSelectedIndex() + 1;
 		}
 
-		if (jListMain.isSelectionEmpty() == false) {
+		if (!jListMain.isSelectionEmpty()) {
 			idx = jListMain.getSelectedIndices();
 
-			// move the selected item of "Main List" to "Buffer List"
+			// move the selected item in "Main List" to "Buffer List"
 			for (int i=(idx.length-1); i>=0; i--) {
-				moveContent(listContentMain, idx[i], 
-				   	 		listContentBuffer, index2);
+				jListMain.move(idx[i], jListBuffer, index2);
 			}
 
 			// Update the graphical representation
@@ -580,6 +554,20 @@ public class MelangeJFrame extends JFrame {
 			});
 			jListMain.setDragEnabled(true);
 			jListMain.setTransferHandler(arrayListHandler);
+			jListMain.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE,0), "Delete");
+			jListMain.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_RIGHT,0), "Delete");
+			jListMain.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_KP_RIGHT,0), "Delete");
+			jListMain.getActionMap().put("Delete", new javax.swing.AbstractAction() {
+				private static final long serialVersionUID = 1L;
+				public void actionPerformed(ActionEvent e) {
+					onMovePages2Buffer();
+	            }
+	        });
+//			jListMain.addKeyListener(new java.awt.event.KeyAdapter() {
+//				public void keyReleased(java.awt.event.KeyEvent e) {
+//					if (e.getKeyCode() == KeyEvent.VK_DELETE) onMovePages2Buffer();
+//				}
+//			});
 		}	
 		return jListMain;
 	}
@@ -611,6 +599,28 @@ public class MelangeJFrame extends JFrame {
 			});
 			jListBuffer.setDragEnabled(true);
 			jListBuffer.setTransferHandler(arrayListHandler);
+			jListBuffer.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_DELETE,0), "Delete");
+			jListBuffer.getActionMap().put("Delete", new javax.swing.AbstractAction() {
+				private static final long serialVersionUID = 1L;
+				public void actionPerformed(ActionEvent e) {
+					jListBuffer.deleteSelected();
+	            }
+	        });
+			jListBuffer.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_LEFT,0), "Add");
+			jListBuffer.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_KP_LEFT,0), "Add");
+			jListBuffer.getActionMap().put("Add", new javax.swing.AbstractAction() {
+				private static final long serialVersionUID = 1L;
+				public void actionPerformed(ActionEvent e) {
+					onAddPages();
+	            }
+	        });
+//			jListBuffer.addKeyListener(new java.awt.event.KeyAdapter() {
+//				public void keyReleased(java.awt.event.KeyEvent e) {
+//					if (e.getKeyCode() == KeyEvent.VK_DELETE){
+//						jListBuffer.deleteSelected();
+//					}
+//				}
+//			});
 		}
 		return jListBuffer;
 	}
@@ -969,7 +979,7 @@ public class MelangeJFrame extends JFrame {
 			public void windowClosing(java.awt.event.WindowEvent e) {
 				MelangeJFrame.this.dispose();
 			}
-		});	
+		});			
 	}
 
 	/**
@@ -1079,7 +1089,6 @@ public class MelangeJFrame extends JFrame {
 		canonicalMainFileName = filename;
 		this.setTitle(projectName + ": " + canonicalMainFileName);
 		listContentMain.clear();
-		jListMain.removeAll();
 
 		CreateThumbnailsJP task = new CreateThumbnailsJP(this, filename, jListMain);
 		task.start();
@@ -1150,10 +1159,8 @@ public class MelangeJFrame extends JFrame {
 	private void onMainFileNew(){
 		
 		listContentMain.clear();
-		jListMain.removeAll();
 		canonicalMainFileName = "";
 		this.setTitle(projectName + ": " + canonicalMainFileName);
-		//System.out.println("Main list cleared,\nfile name cleared.");
 	}
 
 	private void onRotate(int CWorCCW){
@@ -1395,9 +1402,6 @@ public class MelangeJFrame extends JFrame {
 			jMenuItemClearMain.addActionListener(new java.awt.event.ActionListener() {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
 					listContentMain.clear();
-					jListMain.removeAll();
-					jListMain.updateUI();
-					//System.out.println("Main list cleared.");
 				}
 			});
 		}
@@ -1416,9 +1420,6 @@ public class MelangeJFrame extends JFrame {
 			jMenuItemClearBuffer.addActionListener(new java.awt.event.ActionListener() {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
 					listContentBuffer.clear();
-					jListBuffer.removeAll();
-					jListBuffer.updateUI();
-					//System.out.println("Buffer list cleared.");
 				}
 			});
 		}

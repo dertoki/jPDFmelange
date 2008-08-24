@@ -96,11 +96,11 @@ public class ArrayListTransferHandler extends TransferHandler {
         }
         if (files.size() == 0) return false;
         
-        // Insert the dropped files in the selected list Main or Buffer.
+        // Insert the dropped files in the selected list Main or list Buffer.
         //
         // If the Main List is selected insert on selected position or append if List is empty.
         if (target.equals(parent.jListMain)){
-        	if (parent.canonicalMainFileName.length() == 0){
+        	if (parent.jListMain.getModel().getSize() == 0){
         		for (int i=0; i<files.size(); i++){
         			String fileName = ((File)files.get(i)).getCanonicalPath();
         			if (i==0) parent.openFileMain(fileName);
@@ -112,12 +112,14 @@ public class ArrayListTransferHandler extends TransferHandler {
         			}
         		}        		
         	} else {
-        		CreateThumbnailsJP task = new CreateThumbnailsJP(parent, 
-        														 ((File)files.get(0)).getCanonicalPath(), 
-        														 parent.jListMain
-        														);
-        		if (!target.isSelectionEmpty()) task.setInsertOffset(target.getSelectedIndex()+1);
-        		task.start();
+        		for (int i=0; i<files.size(); i++){
+        			String fileName = ((File)files.get(i)).getCanonicalPath();
+            		CreateThumbnailsJP task = new CreateThumbnailsJP(parent, 
+							 fileName, 
+							 parent.jListMain);
+            		if (!target.isSelectionEmpty()) task.setInsertOffset(target.getSelectedIndex()+1);
+            		task.start();
+        		}        		
         	}
         // If Buffer List is selected, simply append the dropped files.
         } else if (target.equals(parent.jListBuffer)){
@@ -154,6 +156,8 @@ public class ArrayListTransferHandler extends TransferHandler {
 		try {
 			reader = new BufferedReader(flavor.getReaderForText(t));
 	        for (String line = reader.readLine(); line!=null; line = reader.readLine()){
+	        	//if(("" + (char)0).equals(line)) continue;
+	        	if(Character.toString('\000').equals(line)) continue;
 				URI uri = new URI(line);
 				files.add(new File(uri));
 	        }

@@ -25,9 +25,10 @@ import java.awt.Frame;
 import java.awt.Point;
 import java.awt.Rectangle;
 import java.awt.SystemColor;
+import java.awt.event.ActionEvent;
+import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.util.Locale;
-
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
@@ -35,6 +36,7 @@ import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 import javax.swing.JTextPane;
+import javax.swing.KeyStroke;
 
 public class MelangePreferencesDialog extends JDialog {
 
@@ -136,6 +138,36 @@ public class MelangePreferencesDialog extends JDialog {
 			jContentPane.add(getJComboBoxLanguage(), null);
 			jContentPane.add(getJCheckBoxShowButtonsPanel(), null);
 			jContentPane.add(getJTextPaneShowButtonsPanel(), null);
+			jContentPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0), "OK");
+			jContentPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0), "Cancel");
+			jContentPane.getActionMap().put("OK", new javax.swing.AbstractAction() {
+				private static final long serialVersionUID = 1L;
+				public void actionPerformed(ActionEvent e) {
+					onSave();
+					MelangePreferencesDialog.this.setVisible(false);
+					MelangePreferencesDialog.this.dispose();						
+	            }
+	        });
+			jContentPane.getActionMap().put("Cancel", new javax.swing.AbstractAction() {
+				private static final long serialVersionUID = 1L;
+				public void actionPerformed(ActionEvent e) {
+					MelangePreferencesDialog.this.setVisible(false);
+					MelangePreferencesDialog.this.dispose();						
+	            }
+	        });
+//			jContentPane.addKeyListener(new java.awt.event.KeyAdapter() {
+//				public void keyReleased(java.awt.event.KeyEvent e) {
+//					if (e.getKeyCode() == KeyEvent.VK_ENTER){
+//						onSave();
+//						MelangePreferencesDialog.this.setVisible(false);
+//						MelangePreferencesDialog.this.dispose();						
+//					} else if (e.getKeyCode() == KeyEvent.VK_ESCAPE){
+//						MelangePreferencesDialog.this.setVisible(false);
+//						MelangePreferencesDialog.this.dispose();
+//					}
+//				}
+//			});
+//			jContentPane.setFocusable(true);
 		}
 		return jContentPane;
 	}
@@ -152,43 +184,9 @@ public class MelangePreferencesDialog extends JDialog {
 			jButtonOK.setText(MelangeJFrame.messages.getString("buttonSave"));
 			jButtonOK.addActionListener(new java.awt.event.ActionListener() {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
-					try {
-						parent.iconHeight = Integer.parseInt(jTextFieldIconSize.getText());
-					} catch (NumberFormatException e1) {
-						System.err.println("Incorrect formatting.");
-					}		
-					
-					switch (jComboBoxImageScale.getSelectedIndex()) {
-					case 0:
-						parent.imageScalingAlgorithm = BufferedImage.SCALE_FAST;
-						break;
-					case 1:
-						parent.imageScalingAlgorithm = BufferedImage.SCALE_SMOOTH;
-						break;
-					case 2:
-						parent.imageScalingAlgorithm = BufferedImage.SCALE_AREA_AVERAGING;
-						break;
-					default:
-						parent.imageScalingAlgorithm = BufferedImage.SCALE_SMOOTH;
-						break;
-					}
-					
-					MelangeJFrame.locale = (Locale) MelangeJFrame.localeTable.get(jComboBoxLanguage.getSelectedIndex());
-					
-					if (jCheckBoxShowButtonsPanel.isSelected()){
-						parent.showButtonsPanel = true;
-					} else {
-						parent.showButtonsPanel = false;
-					}
-					parent.jCheckBoxMenuItemShowMoveButtons.setSelected(parent.showButtonsPanel);
-					parent.jPanelButtons.setVisible(parent.showButtonsPanel);
-					
+					onSave();
 					MelangePreferencesDialog.this.setVisible(false);
 					MelangePreferencesDialog.this.dispose();
-					//
-					// Save to changed properties.
-					//
-					((MelangeJFrame)MelangePreferencesDialog.this.getOwner()).setProperties();
 				}
 			});
 		}
@@ -355,6 +353,44 @@ public class MelangePreferencesDialog extends JDialog {
 			jTextPaneShowButtonsPanel.setBackground(null);
 		}
 		return jTextPaneShowButtonsPanel;
+	}
+	
+	private void onSave(){
+		try {
+			parent.iconHeight = Integer.parseInt(jTextFieldIconSize.getText());
+		} catch (NumberFormatException e1) {
+			System.err.println("Incorrect formatting.");
+		}		
+		
+		switch (jComboBoxImageScale.getSelectedIndex()) {
+		case 0:
+			parent.imageScalingAlgorithm = BufferedImage.SCALE_FAST;
+			break;
+		case 1:
+			parent.imageScalingAlgorithm = BufferedImage.SCALE_SMOOTH;
+			break;
+		case 2:
+			parent.imageScalingAlgorithm = BufferedImage.SCALE_AREA_AVERAGING;
+			break;
+		default:
+			parent.imageScalingAlgorithm = BufferedImage.SCALE_SMOOTH;
+			break;
+		}
+		
+		MelangeJFrame.locale = (Locale) MelangeJFrame.localeTable.get(jComboBoxLanguage.getSelectedIndex());
+		
+		if (jCheckBoxShowButtonsPanel.isSelected()){
+			parent.showButtonsPanel = true;
+		} else {
+			parent.showButtonsPanel = false;
+		}
+		parent.jCheckBoxMenuItemShowMoveButtons.setSelected(parent.showButtonsPanel);
+		parent.jPanelButtons.setVisible(parent.showButtonsPanel);
+		
+		//
+		// Save to changed properties.
+		//
+		((MelangeJFrame)MelangePreferencesDialog.this.getOwner()).setProperties();
 	}
 
 }  //  @jve:decl-index=0:visual-constraint="10,10"

@@ -21,6 +21,7 @@ package jPDFmelange;
 
 import java.awt.Component;
 
+import javax.swing.DefaultListModel;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
@@ -41,7 +42,40 @@ public class PDFjList extends JList {
 		PDFListCellRenderer renderer = new PDFListCellRenderer();
 		setCellRenderer(renderer);
 	}
+	
+	public void deleteSelected(){
+		if (!isSelectionEmpty()) {
+			DefaultListModel model = (DefaultListModel) getModel();
+			int idx[] = getSelectedIndices();		
 
+			for (int i=(idx.length-1); i>=0; i--) {
+				model.remove(idx[i]);
+			}
+		}		
+	}
+
+	/**
+	 * This method moves content of current List with a specified index 
+	 *   to the target List at specified index.   	
+	 * 
+	 * @return int: new index of List A
+	 */
+	public int move(int sourceIdx, PDFjList targetList, int targetIdx){
+		DefaultListModel source = (DefaultListModel) getModel();
+		DefaultListModel target = (DefaultListModel) targetList.getModel();
+		// append or insert the selection to the content of list2 
+		if (targetIdx == target.size()) {
+			target.addElement(source.get(sourceIdx));
+		} else {
+			target.add(targetIdx, source.get(sourceIdx));
+		}
+		// remove selection of content in list1
+		source.remove(sourceIdx);
+		if (sourceIdx == source.size()) sourceIdx--;
+		return sourceIdx;
+	}
+	
+	
 //	 Display an icon and a string for each object in the list.
 
 	class PDFListCellRenderer extends JLabel implements ListCellRenderer {
