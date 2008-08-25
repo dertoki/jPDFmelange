@@ -30,6 +30,7 @@ import java.io.InputStreamReader;
 import java.util.ResourceBundle;
 
 import javax.swing.JButton;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -108,9 +109,9 @@ public class MelangeInfoDialog extends JDialog {
 			jContentPane.setPreferredSize(new Dimension(400, 200));
 			jContentPane.add(getJTabbedPane(), BorderLayout.CENTER);
 			jContentPane.add(getJPanel(), BorderLayout.SOUTH);
-			jContentPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0), "OK");
-			jContentPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE,0), "OK");
-			jContentPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0), "OK");
+			jContentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0), "OK");
+			jContentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_SPACE,0), "OK");
+			jContentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0), "OK");
 			jContentPane.getActionMap().put("OK", new javax.swing.AbstractAction() {
 				private static final long serialVersionUID = 1L;
 				public void actionPerformed(ActionEvent e) {

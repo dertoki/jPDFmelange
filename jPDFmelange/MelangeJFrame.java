@@ -81,7 +81,7 @@ public class MelangeJFrame extends JFrame {
 	private static final long serialVersionUID = 4042464615276354878L;
 	
 	public static final String projectName = "jPDFmelange";
-	public static final String projectVersion = "0.1.11";
+	public static final String projectVersion = "0.1.11.2";
 	public String propertiesFileName = System.getProperty("user.dir").concat(System.getProperty("file.separator")).concat("melange.rc");
 	public String canonicalBufferFileName = "";
 	public String canonicalMainFileName  = "";
@@ -1001,7 +1001,9 @@ public class MelangeJFrame extends JFrame {
 			
 			// Get property ShowMoveButtons
 			propertyStr = melangeProperties.getProperty("ShowButtonsPanel", String.valueOf(showButtonsPanel));
-			showButtonsPanel = Boolean.parseBoolean(propertyStr);
+			// OK, for Java <= 1.4 there is no Boolean.parseBoolean(String)
+			//showButtonsPanel = Boolean.parseBoolean(propertyStr);
+			showButtonsPanel = propertyStr.equalsIgnoreCase("true");
 				
 			
 			// Get the property IconHeight, check limits.
@@ -1131,7 +1133,7 @@ public class MelangeJFrame extends JFrame {
 			jListMain.setSelectedIndices(idx);
 			//jListMain.setSelectedIndex(idx[0] + 1);						
 			jListMain.ensureIndexIsVisible(lastIdx + 1);
-			jListMain.updateUI();
+			jListMain.repaint();
 		}
 	}
 
@@ -1152,7 +1154,7 @@ public class MelangeJFrame extends JFrame {
 			}
 			jListMain.setSelectedIndices(idx);
 			jListMain.ensureIndexIsVisible(idx[0] - 1);
-			jListMain.updateUI();
+			jListMain.repaint();
 		}
 	}
 
@@ -1175,7 +1177,6 @@ public class MelangeJFrame extends JFrame {
      		
 			// Update the graphical representation
 			jListMain.ensureIndexIsVisible(index1[0]);
-			jListMain.updateUI();
 			jListMain.repaint();
 
 			// Update the preview, if the preview panel is selected in the tabbed pane.
@@ -1434,6 +1435,18 @@ public class MelangeJFrame extends JFrame {
 	private JPanel getJPanePreview() {
 		if (jPanePreview == null) {
 			jPanePreview = new PdfDecoder();
+			jPanePreview.addComponentListener(new java.awt.event.ComponentAdapter() {
+				public void componentResized(java.awt.event.ComponentEvent e) {
+					// Update the preview, if the preview panel is selected in the tabbed pane.
+					if (indexOfPreviewPane == jTabbedPane.getSelectedIndex()){
+						try {
+							showPreviewJP((PageNode)listContentMain.get(jListMain.getSelectedIndex()));
+						} catch (Exception e1) {
+							e1.printStackTrace();
+						}
+					}
+				}
+			});
 		}
 		return jPanePreview;
 	}

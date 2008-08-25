@@ -32,6 +32,7 @@ import java.util.Locale;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
+import javax.swing.JComponent;
 import javax.swing.JDialog;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
@@ -138,8 +139,7 @@ public class MelangePreferencesDialog extends JDialog {
 			jContentPane.add(getJComboBoxLanguage(), null);
 			jContentPane.add(getJCheckBoxShowButtonsPanel(), null);
 			jContentPane.add(getJTextPaneShowButtonsPanel(), null);
-			jContentPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0), "OK");
-			jContentPane.getInputMap().put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0), "Cancel");
+			jContentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ENTER,0), "OK");
 			jContentPane.getActionMap().put("OK", new javax.swing.AbstractAction() {
 				private static final long serialVersionUID = 1L;
 				public void actionPerformed(ActionEvent e) {
@@ -148,6 +148,7 @@ public class MelangePreferencesDialog extends JDialog {
 					MelangePreferencesDialog.this.dispose();						
 	            }
 	        });
+			jContentPane.getInputMap(JComponent.WHEN_IN_FOCUSED_WINDOW).put(KeyStroke.getKeyStroke(KeyEvent.VK_ESCAPE,0), "Cancel");
 			jContentPane.getActionMap().put("Cancel", new javax.swing.AbstractAction() {
 				private static final long serialVersionUID = 1L;
 				public void actionPerformed(ActionEvent e) {
