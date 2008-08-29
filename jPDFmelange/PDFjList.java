@@ -74,7 +74,15 @@ public class PDFjList extends JList {
 		if (sourceIdx == source.size()) sourceIdx--;
 		return sourceIdx;
 	}
-	
+
+	public void rotate(int idx, int CWorCCW){
+		DefaultListModel model = (DefaultListModel) getModel();
+		PageNode page = (PageNode) model.get(idx);
+		PageNode rotatedPage = (PageNode) page.clone();
+		rotatedPage.rotate(CWorCCW);
+		model.remove(idx);
+		model.add(idx, rotatedPage);
+	}
 	
 //	 Display an icon and a string for each object in the list.
 

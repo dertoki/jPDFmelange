@@ -20,13 +20,11 @@
 package jPDFmelange;
 
 import java.awt.image.BufferedImage;
-import java.io.File;
 
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
-import javax.swing.SwingConstants;
 
-public class PageNode extends JLabel{
+public class PageNode extends JLabel implements Cloneable {
 	/**
 	 * This class extends JLabel with some attributes of PDF pages.
 	 */
@@ -35,6 +33,17 @@ public class PageNode extends JLabel{
 	int pagenumber; // pagenumber 1 = Page 1
 	int rotation;   // 0, 90, 180, 270, 360
 	int format;     // A4, A3, A2, A1, A0, ...
+
+	public Object clone() 
+	{ 
+	  try 
+	  { 
+	    return super.clone(); 
+	  }  
+	  catch ( CloneNotSupportedException e ) { 
+	    throw new InternalError(); 
+	  } 
+	} 
 
 	public void setFilename(String name){
 		this.filename = name;
@@ -54,8 +63,6 @@ public class PageNode extends JLabel{
 
 	public void rotate(int CWorCCW){
 
-   		File file = new File(filename);
-   		
 		// Labellist: rotate element
 		ImageIcon imgIcon = (ImageIcon) this.getIcon();
 		BufferedImage bimage = (BufferedImage) imgIcon.getImage();
@@ -78,11 +85,7 @@ public class PageNode extends JLabel{
         }
 		
    		// Change the node.
-   		this.setText("<" +file.getName() + "> " + MelangeJFrame.messages.getString("page") + " " + pagenumber);
    		this.setIcon(imgIcon);
-   		this.setHorizontalAlignment(SwingConstants.LEFT);
-   		this.setFilename(filename);
-   		this.setPagenumber(pagenumber);
    		this.setRotation(rotation);
 	}
 	

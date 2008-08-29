@@ -81,7 +81,7 @@ public class MelangeJFrame extends JFrame {
 	private static final long serialVersionUID = 4042464615276354878L;
 	
 	public static final String projectName = "jPDFmelange";
-	public static final String projectVersion = "0.1.11.3";
+	public static final String projectVersion = "0.1.11.5";
 	public String propertiesFileName = System.getProperty("user.dir").concat(System.getProperty("file.separator")).concat("melange.rc");
 	public String canonicalBufferFileName = "";
 	public String canonicalMainFileName  = "";
@@ -1168,22 +1168,20 @@ public class MelangeJFrame extends JFrame {
 	private void onRotate(int CWorCCW){
 		if (jListMain.isSelectionEmpty() == false) {
 
-			int[] index1 = jListMain.getSelectedIndices();			
+			int idx[] = jListMain.getSelectedIndices();			
 
 			// rotate the selected items of "Main List"
-			for (int i=0; i<index1.length; i++) {
-				((PageNode)listContentMain.get(index1[i])).rotate(CWorCCW);
+			for (int i=0; i<idx.length; i++) {
+				jListMain.rotate(idx[i], CWorCCW);
 			}
      		
 			// Update the graphical representation
-			jListMain.ensureIndexIsVisible(index1[0]);
-			jListMain.updateUI();
-			jListMain.repaint();
+			jListMain.setSelectedIndices(idx);
 
 			// Update the preview, if the preview panel is selected in the tabbed pane.
 			if (indexOfPreviewPane == jTabbedPane.getSelectedIndex()){
 				try {
-					showPreviewJP((PageNode)listContentMain.get(index1[0]));
+					showPreviewJP((PageNode)listContentMain.get(idx[0]));
 				} catch (Exception e1) {
 					e1.printStackTrace();
 				}
@@ -1250,7 +1248,7 @@ public class MelangeJFrame extends JFrame {
 		PdfReader reader = null;
 		PdfDictionary dict = null;
 		Document pdfDoc = new Document();
-		PdfCopy writer = new PdfCopy(pdfDoc, new FileOutputStream(tmpfile.getCanonicalPath()));
+		PdfCopy writer = new PdfCopy(pdfDoc, new FileOutputStream(tmpfile));
 		pdfDoc.open();
 		PageNode node = null;
 		for (int i = 0; i < listContentMain.size(); i++){
@@ -1325,7 +1323,6 @@ public class MelangeJFrame extends JFrame {
 	    jPanePreview.repaint();
         //System.out.println("Page " + node.pagenumber + " ratioPDF "+ ratioPDF + " ratioPanel " + ratioPanel + " zoom " + zoom);
 
-	    // GUI stuff, may be bad style - but works - 
 		setCursor(cursor);
 }
 

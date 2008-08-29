@@ -32,9 +32,9 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JProgressBar;
 import javax.swing.SwingConstants;
-import javax.swing.SwingUtilities;
 
 import org.jpedal.PdfDecoder;
+import org.jpedal.exception.PdfException;
 import org.jpedal.exception.PdfSecurityException;
 
 /**
@@ -88,19 +88,23 @@ public class CreateThumbnailsJP extends Thread {
 				getThumbnails();
 			}
 		} catch (IOException e) {
+			System.out.println("IOException");
 			e.printStackTrace();
 		} catch (final PdfSecurityException e) {
-			SwingUtilities.invokeLater( new Runnable() 
-	        { 
-	          public void run() { 
-	  			JOptionPane.showMessageDialog(parent,
-						  MelangeJFrame.messages.getString(e.getLocalizedMessage()),
-						  MelangeJFrame.messages.getString("warning"),
-						  JOptionPane.WARNING_MESSAGE);
-				progressBar.setVisible(false);
-				parent.jToolBar.remove(progressBar);
-	          } 
-	        } ); 
+  			JOptionPane.showMessageDialog(parent,
+					  MelangeJFrame.messages.getString(e.getLocalizedMessage()),
+					  MelangeJFrame.messages.getString("warning"),
+					  JOptionPane.WARNING_MESSAGE);
+			progressBar.setVisible(false);
+			parent.jToolBar.remove(progressBar);
+		} catch (PdfException e) {
+			System.out.println("PdfException");
+  			JOptionPane.showMessageDialog(parent,
+					  "Cannot open PDF file.",
+					  "Error",
+					  JOptionPane.ERROR_MESSAGE);
+			progressBar.setVisible(false);
+			parent.jToolBar.remove(progressBar);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -110,7 +114,7 @@ public class CreateThumbnailsJP extends Thread {
 		pdfDecoder = new PdfDecoder();
 		pdfDecoder.openPdfFile(canonicalfilename);
 		pdfDecoder.setEnableLegacyJPEGConversion(true);
-		if (pdfDecoder.isEncrypted())
+		if (!pdfDecoder.isFileViewable())
 			throw new PdfSecurityException("messageEncryptionNotSupported");
 		nPages = pdfDecoder.getPageCount();
 
