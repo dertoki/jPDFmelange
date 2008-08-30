@@ -78,10 +78,11 @@ public class PDFjList extends JList {
 	public void rotate(int idx, int CWorCCW){
 		DefaultListModel model = (DefaultListModel) getModel();
 		PageNode page = (PageNode) model.get(idx);
-		PageNode rotatedPage = (PageNode) page.clone();
-		rotatedPage.rotate(CWorCCW);
+		//PageNode rotatedPage = (PageNode) page.clone();
+		//rotatedPage.rotate(CWorCCW);
 		model.remove(idx);
-		model.add(idx, rotatedPage);
+		page.rotate(CWorCCW);
+		model.add(idx, page);
 	}
 	
 //	 Display an icon and a string for each object in the list.

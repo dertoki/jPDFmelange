@@ -81,7 +81,7 @@ public class MelangeJFrame extends JFrame {
 	private static final long serialVersionUID = 4042464615276354878L;
 	
 	public static final String projectName = "jPDFmelange";
-	public static final String projectVersion = "0.1.11.5";
+	public static final String projectVersion = "0.1.12";
 	public String propertiesFileName = System.getProperty("user.dir").concat(System.getProperty("file.separator")).concat("melange.rc");
 	public String canonicalBufferFileName = "";
 	public String canonicalMainFileName  = "";
@@ -1253,7 +1253,10 @@ public class MelangeJFrame extends JFrame {
 		PageNode node = null;
 		for (int i = 0; i < listContentMain.size(); i++){
 			node = (PageNode)listContentMain.get(i);
-			reader = new PdfReader(node.filename);
+			if (node.password == null) 
+				reader = new PdfReader(node.filename);
+			else 
+				reader = new PdfReader(node.filename, node.password.getBytes());
 			dict = reader.getPageN(node.pagenumber);
 			dict.put(PdfName.ROTATE, new PdfNumber(node.rotation));
 			writer.addPage(writer.getImportedPage(reader,node.pagenumber));
@@ -1289,6 +1292,7 @@ public class MelangeJFrame extends JFrame {
 		
 		jPanePreview.closePdfFile();
 	    jPanePreview.openPdfFile(node.filename);
+	    if (node.password != null) jPanePreview.setEncryptionPassword(node.password);
         
         //get the width and height for the doc at the default zoom 
         Rectangle rectPDF = new Rectangle(0,0,

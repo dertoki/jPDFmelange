@@ -91,10 +91,7 @@ public class CreateThumbnailsJP extends Thread {
 			System.out.println("IOException");
 			e.printStackTrace();
 		} catch (final PdfSecurityException e) {
-  			JOptionPane.showMessageDialog(parent,
-					  MelangeJFrame.messages.getString(e.getLocalizedMessage()),
-					  MelangeJFrame.messages.getString("warning"),
-					  JOptionPane.WARNING_MESSAGE);
+			System.out.println(MelangeJFrame.messages.getString(e.getLocalizedMessage()));
 			progressBar.setVisible(false);
 			parent.jToolBar.remove(progressBar);
 		} catch (PdfException e) {
@@ -114,8 +111,15 @@ public class CreateThumbnailsJP extends Thread {
 		pdfDecoder = new PdfDecoder();
 		pdfDecoder.openPdfFile(canonicalfilename);
 		pdfDecoder.setEnableLegacyJPEGConversion(true);
-		if (!pdfDecoder.isFileViewable())
-			throw new PdfSecurityException("messageEncryptionNotSupported");
+		String password = null;
+		while (!pdfDecoder.isFileViewable()){
+			PasswordDialog pdialog = new PasswordDialog(parent, filename);
+			pdialog.setVisible(true);
+			if (pdialog.isCanceled)
+				throw new PdfSecurityException("messageEncryptedFile");
+			pdfDecoder.setEncryptionPassword(pdialog.password);
+			password = new String(pdialog.password);
+		}
 		nPages = pdfDecoder.getPageCount();
 
 		// GUI stuff
@@ -176,6 +180,7 @@ public class CreateThumbnailsJP extends Thread {
 			pdfNode.setFilename(canonicalfilename);
 			pdfNode.setPagenumber(ipage);
 			pdfNode.setRotation(pdfDecoder.getPdfPageData().getRotation(ipage));
+			pdfNode.setPassword(password);
 
 			if (insert)
 				listContent.add(listOffset + ipage-1, pdfNode);

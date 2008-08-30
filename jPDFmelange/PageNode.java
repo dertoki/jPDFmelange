@@ -24,27 +24,21 @@ import java.awt.image.BufferedImage;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
-public class PageNode extends JLabel implements Cloneable {
+public class PageNode extends JLabel {
 	/**
 	 * This class extends JLabel with some attributes of PDF pages.
 	 */
 	private static final long serialVersionUID = 1624968555506269609L;
-	String filename;
+	String filename = "";
+	String password = null;
 	int pagenumber; // pagenumber 1 = Page 1
 	int rotation;   // 0, 90, 180, 270, 360
-	int format;     // A4, A3, A2, A1, A0, ...
+	//int format;     // A4, A3, A2, A1, A0, ...
 
-	public Object clone() 
-	{ 
-	  try 
-	  { 
-	    return super.clone(); 
-	  }  
-	  catch ( CloneNotSupportedException e ) { 
-	    throw new InternalError(); 
-	  } 
-	} 
-
+	public void setPassword(String password){
+		this.password = password;
+	}
+	
 	public void setFilename(String name){
 		this.filename = name;
 	}
@@ -57,9 +51,9 @@ public class PageNode extends JLabel implements Cloneable {
 		this.rotation = iRot;
 	}
 	
-	public void setFormat(int iForm){
-		this.format = iForm;
-	}
+//	public void setFormat(int iForm){
+//		this.format = iForm;
+//	}
 
 	public void rotate(int CWorCCW){
 
