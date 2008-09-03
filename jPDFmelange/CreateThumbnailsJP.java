@@ -39,10 +39,16 @@ import org.jpedal.exception.PdfSecurityException;
 
 /**
  * This class creates the thumbnails from each page of a pdf and saves is to a JList.
- * It uses the jPedal Renderer org.jpedal.pdfDecoder
+ * It uses the jPedal Renderer org.jpedal.pdfDecoder.
+ * <p>
+ * To start a thread use <code> .start()</code>:
+ * <pre>
+ *    CreateThumbnailsJP thread = new CreateThumbnailsJP(parent, canonicalfilename, jList);
+ *    thread.start();
+ * </pre>
+ * 
+ * @author tobias tandetzki 30.08.2008
  */
-
-
 public class CreateThumbnailsJP extends Thread {
 	private PdfDecoder pdfDecoder = null;
 	private String canonicalfilename = null;
@@ -54,6 +60,13 @@ public class CreateThumbnailsJP extends Thread {
 	private String filename = null;
 	private boolean insert = false;
 
+	/** 
+	 *  Creates a thread object for thumbnail creation.
+	 *   
+	 *	@param parent GUI element.
+	 *	@param canonicalfilename name of the pdf file.
+	 *  @param jList where the thumbnails are stored.
+	 */
 	CreateThumbnailsJP(MelangeJFrame parent, String canonicalfilename, JList jList) 
 	{
 		this.parent = parent;
@@ -75,13 +88,26 @@ public class CreateThumbnailsJP extends Thread {
 	}
 
 	/**
-	 * Set the offset position where pages are inserted in the JList resp. listContent
+	 * Set the offset position where pages are inserted in the JList resp. listContent.
+	 * 
+	 * @param listOffset index in {@link CreateThumbnailsJP#listContent content} of JList where input starts.
 	 */
 	public void setInsertOffset(int listOffset){
 		this.listOffset = listOffset;
 		this.insert = true;
 	}
 	
+	/**
+	 * Starts execution of the thread.
+	 * <p>
+	 * Don't use <code>.run()</code> to start the thread.<br>
+	 * Use <code>.start()</code> to start the thread, this calls <code>.run()</code> indirect.
+	 * <p>
+	 * The thread is synchronized to {@link CreateThumbnailsJP#listContent content} of JList, so it is 
+	 * guaranteed that only one thread is processing on the same content.
+	 * 
+	 * See {@linkplain CreateThumbnailsJP#getThumbnails() getThumbnails()} which does the main job.
+	 */
 	public void run() {
 		try {
 			synchronized (listContent) {
@@ -107,6 +133,10 @@ public class CreateThumbnailsJP extends Thread {
 		}
 	}
 	
+	/**
+	 * This method creates the thumbnails from each page of a pdf and saves it to a JList.
+	 * It uses the jPedal Renderer org.jpedal.pdfDecoder
+	 */
 	private void getThumbnails() throws Exception {
 		pdfDecoder = new PdfDecoder();
 		pdfDecoder.openPdfFile(canonicalfilename);

@@ -39,11 +39,13 @@ import javax.swing.JTextField;
 import javax.swing.JTextPane;
 import javax.swing.KeyStroke;
 
+/**
+ * A dialog to set some preferences.
+ * 
+ * @author tobias tandetzki 30.08.2008
+ */
 public class MelangePreferencesDialog extends JDialog {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = -8991160732171375540L;
 	
 	private MelangeJFrame parent;
@@ -81,8 +83,6 @@ public class MelangePreferencesDialog extends JDialog {
 
 	/**
 	 * This method initializes this
-	 * 
-	 * @return void
 	 */
 	private void initialize() {
 		this.setSize(395, 234);
@@ -356,6 +356,9 @@ public class MelangePreferencesDialog extends JDialog {
 		return jTextPaneShowButtonsPanel;
 	}
 	
+	/**
+	 * Saves all settings. Use {@link MelangeJFrame#setProperties()} to write to properties file.	
+	 */
 	private void onSave(){
 		try {
 			parent.iconHeight = Integer.parseInt(jTextFieldIconSize.getText());

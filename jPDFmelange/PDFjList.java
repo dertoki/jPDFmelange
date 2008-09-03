@@ -26,23 +26,28 @@ import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.ListCellRenderer;
 
+/**
+ * This class represents a list of Icons with some attributs of pdf pages.
+ * 
+ * @author tobias tandetzki 30.08.2008
+ */
 public class PDFjList extends JList {
-	/**
-	 *   Tan, 16. Feb 2008 
-	 */
+
 	private static final long serialVersionUID = 2267977915187909116L;
 
 
 	/**
-	 * Tan, 16. Feb 2008
+	 *  Creates a list object with a renderer for Icons.
 	 */
 	public PDFjList() {
 		super();
-		// TODO Automatisch erstellter Konstruktoren-Stub
 		PDFListCellRenderer renderer = new PDFListCellRenderer();
 		setCellRenderer(renderer);
 	}
 	
+	/**
+	 *  Removes all selected elements in the list.
+	 */
 	public void deleteSelected(){
 		if (!isSelectionEmpty()) {
 			DefaultListModel model = (DefaultListModel) getModel();
@@ -58,6 +63,9 @@ public class PDFjList extends JList {
 	 * This method moves content of current List with a specified index 
 	 *   to the target List at specified index.   	
 	 * 
+	 * @param sourceIdx index in source list
+	 * @param targetList target list
+	 * @param targetIdx index in target list
 	 * @return int: new index of List A
 	 */
 	public int move(int sourceIdx, PDFjList targetList, int targetIdx){
@@ -75,6 +83,13 @@ public class PDFjList extends JList {
 		return sourceIdx;
 	}
 
+	/**
+	 * Execute a rotation on a list element.
+	 * 
+	 * @param idx index of element to be rotated.
+	 * @param CWorCCW clockwise or counterclockwise. 
+	 *         This should be a value of [{@link DIRECTION#CW}, {@link DIRECTION#CCW}].
+	 */
 	public void rotate(int idx, int CWorCCW){
 		DefaultListModel model = (DefaultListModel) getModel();
 		PageNode page = (PageNode) model.get(idx);
@@ -85,13 +100,11 @@ public class PDFjList extends JList {
 		model.add(idx, page);
 	}
 	
-//	 Display an icon and a string for each object in the list.
-
+	/**
+	 * Display an icon and a string for each object in the list.
+	 */
 	class PDFListCellRenderer extends JLabel implements ListCellRenderer {
 	    
-		/**
-		 * Tan, 15. Feb 08
-		 */
 		private static final long serialVersionUID = 6632253181619407517L;
 
 		public PDFListCellRenderer() {
@@ -100,7 +113,7 @@ public class PDFjList extends JList {
 			setVerticalAlignment(CENTER);
 		}
 
-		/*
+		/**
 		 * This method finds the image and text corresponding to the selected value
 		 * and returns the label, set up to display the text and image.
 		 */
@@ -116,10 +129,6 @@ public class PDFjList extends JList {
 				setBackground(list.getBackground());
 				setForeground(list.getForeground());
 			}
-
-			// Set the icon and text. If icon was null, say so.
-		    // String pet = ((JLabel)list.getModel().getElementAt(index)).getText();
-			// ups, is 'c' like casting really type save? Is this a good java style? 
 			String sPage = ((JLabel)value).getText();
 			setIcon(((JLabel)value).getIcon());
 			if (value != null) {
@@ -128,7 +137,6 @@ public class PDFjList extends JList {
 			} else {
 				setText(sPage + " (no image available)");
 			}
-
 			return this;
 		}
 	}

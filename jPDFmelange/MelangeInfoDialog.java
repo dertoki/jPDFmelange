@@ -42,11 +42,13 @@ import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
 
+/**
+ * A info dialog that shows three tabs for info / author / license
+ * 
+ * @author tobias tandetzki 30.08.2008
+ */
 public class MelangeInfoDialog extends JDialog {
 
-	/**
-	 * 
-	 */
 	private static final long serialVersionUID = 7392801504056306623L;
 	private JPanel jContentPane = null;
 	private JButton jButton = null;
@@ -58,6 +60,7 @@ public class MelangeInfoDialog extends JDialog {
 	private JPanel jPanelAuthors = null;
 	private JTextArea jTextArea1 = null;
 	private JPanel jPanel = null;
+	
 	/**
 	 * @param owner
 	 */
@@ -68,8 +71,6 @@ public class MelangeInfoDialog extends JDialog {
 
 	/**
 	 * This method initializes this
-	 * 
-	 * @return void
 	 */
 	private void initialize() {
 		this.setContentPane(getJContentPane());

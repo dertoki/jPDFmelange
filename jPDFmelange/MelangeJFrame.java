@@ -73,21 +73,21 @@ import edu.stanford.ejalbert.exception.BrowserLaunchingInitializingException;
 import edu.stanford.ejalbert.exception.UnsupportedOperatingSystemException;
 import javax.swing.JCheckBoxMenuItem;
 
+/**
+ *  Projekct Main Class.
+ */
 public class MelangeJFrame extends JFrame {
 
-	/**
-	 *  Projekct Main Class
-	 */
 	private static final long serialVersionUID = 4042464615276354878L;
 	
 	public static final String projectName = "jPDFmelange";
-	public static final String projectVersion = "0.1.12";
+	public static final String projectVersion = "0.2.0";
 	public String propertiesFileName = System.getProperty("user.dir").concat(System.getProperty("file.separator")).concat("melange.rc");
 	public String canonicalBufferFileName = "";
 	public String canonicalMainFileName  = "";
 	public String currentDirectoryPath = "";
 	public boolean showButtonsPanel = false;
-	private ArrayListTransferHandler arrayListHandler;
+	private ArrayListTransferHandler arrayListHandler = null;
 
 
 	// Properties set in propertiesFile
@@ -165,7 +165,7 @@ public class MelangeJFrame extends JFrame {
 		listContentMain.clear();
 	}
 
-	/* (Kein Javadoc)
+	/** 
 	 * @see java.awt.Window#dispose()
 	 */
 	//@Override
@@ -197,16 +197,10 @@ public class MelangeJFrame extends JFrame {
 		return jButtonAdd;
 	}
 
-	/**
-	 * This method moves selected pages from the "Buffer List" to "Main List" 	
-	 * The "Buffer List" is represented with 
-	 *                  jListBuffer: PDFjList (extends JList)
-	 *                  listcontent2: Vector<PageNode>
-	 * The "Main List" is represented with 
-	 *                  jListMain: PDFjList (extends JList)
-	 *                  listcontent1: Vector<PageNode>
-	 * 
-	 * @return void	
+	/** 
+	 *  Wrapper for calls like {@link MelangeJFrame#getJButtonAdd()}.
+	 *  <p>
+	 *  This method moves selected pages from the "Buffer List" to "Main List" 	
 	 */
 	private void onAddPages(){
 		int index1 = 0;
@@ -259,6 +253,9 @@ public class MelangeJFrame extends JFrame {
 		return jButtonDel;
 	}
 
+	/** 
+	 *  Wrapper for calls like {@link MelangeJFrame#getJButtonDel()}.
+	 */
 	private void onMovePages2Buffer(){
 		int idx[] = null;
 		int index2 = 0;
@@ -563,11 +560,6 @@ public class MelangeJFrame extends JFrame {
 					onMovePages2Buffer();
 	            }
 	        });
-//			jListMain.addKeyListener(new java.awt.event.KeyAdapter() {
-//				public void keyReleased(java.awt.event.KeyEvent e) {
-//					if (e.getKeyCode() == KeyEvent.VK_DELETE) onMovePages2Buffer();
-//				}
-//			});
 		}	
 		return jListMain;
 	}
@@ -614,13 +606,6 @@ public class MelangeJFrame extends JFrame {
 					onAddPages();
 	            }
 	        });
-//			jListBuffer.addKeyListener(new java.awt.event.KeyAdapter() {
-//				public void keyReleased(java.awt.event.KeyEvent e) {
-//					if (e.getKeyCode() == KeyEvent.VK_DELETE){
-//						jListBuffer.deleteSelected();
-//					}
-//				}
-//			});
 		}
 		return jListBuffer;
 	}
@@ -911,40 +896,38 @@ public class MelangeJFrame extends JFrame {
 	};
 	
 	/**
-	 * This method initializes this
+	 * This method initializes <code>this</code>.
 	 * 
 	 */
 	private void initialize() {
 
-		//
-		//  Check what language properties files are available.
-		//      Make a list of all locals that are supported with a language properties file.
-		//      This list is used within the options menu dialoge.
-		//
-		/*
-	    String url = getClass().getResource("/resources").getFile();		
-		System.out.println(url);
-		File resourcesDir = new File(url); 
-	    String fileNames[] = resourcesDir.list(new PropertiesFilenameFilter());
-	    for (int i = 0; i < fileNames.length; i++ ){
-	    	  String language = "", country = "", variant = "";
-		      int l = fileNames[i].indexOf('_');
-		      if (l > -1){
-		    	  language = fileNames[i].substring(l+1, l+3);
-	    		  int c = fileNames[i].indexOf('_', l+3);
-	    		  if (c > -1){
-	    			  country = fileNames[i].substring(c+1, c+3);
-	    			  int v = fileNames[i].indexOf('_', c+3);
-	    			  if (v > -1){
-	    				  int dot = fileNames[i].indexOf('.', v);
-	    				  variant = fileNames[i].substring(v+1, dot);
-	    			  }
-	    		  }
-	    		  //System.out.println(fileNames[i] + " " + language + " " + country + " " + variant);
-	    		  localeTable.add(new Locale(language, country, variant));
-	    	  }
-	    }
-	    */
+//		//
+//		//  Check what language properties files are available.
+//		//      Make a list of all locals that are supported with a language properties file.
+//		//      This list is used within the options menu dialoge.
+//		//
+//	    String url = getClass().getResource("/resources").getFile();		
+//		System.out.println(url);
+//		File resourcesDir = new File(url); 
+//	    String fileNames[] = resourcesDir.list(new PropertiesFilenameFilter());
+//	    for (int i = 0; i < fileNames.length; i++ ){
+//	    	  String language = "", country = "", variant = "";
+//		      int l = fileNames[i].indexOf('_');
+//		      if (l > -1){
+//		    	  language = fileNames[i].substring(l+1, l+3);
+//	    		  int c = fileNames[i].indexOf('_', l+3);
+//	    		  if (c > -1){
+//	    			  country = fileNames[i].substring(c+1, c+3);
+//	    			  int v = fileNames[i].indexOf('_', c+3);
+//	    			  if (v > -1){
+//	    				  int dot = fileNames[i].indexOf('.', v);
+//	    				  variant = fileNames[i].substring(v+1, dot);
+//	    			  }
+//	    		  }
+//	    		  //System.out.println(fileNames[i] + " " + language + " " + country + " " + variant);
+//	    		  localeTable.add(new Locale(language, country, variant));
+//	    	  }
+//	    }
 		
 	    localeTable.add(new Locale("de"));
 	    localeTable.add(new Locale("en"));
@@ -984,8 +967,6 @@ public class MelangeJFrame extends JFrame {
 
 	/**
 	 * This method reads the properties file "melange.rc" located in "user.dir". 	
-	 * 	
-	 * @return void
 	 */
 	private void getProperties() {
 		String propertyStr = null;
@@ -1037,8 +1018,6 @@ public class MelangeJFrame extends JFrame {
 
 	/**
 	 * This method writes the properties file "melange.rc" located in "user.dir". 	
-	 * 	
-	 * @return void
 	 */
 	public void setProperties() {
 		try {
@@ -1065,6 +1044,9 @@ public class MelangeJFrame extends JFrame {
 		
 	}
 
+	/** 
+	 *  Wrapper for calls like {@link MelangeJFrame#getJButtonFileAddBuffer()}.
+	 */
 	private void onFileOpenBuffer(){
 		JFileChooser chooser = new JFileChooser(currentDirectoryPath);
 	    PDFFilter filter = new PDFFilter();
@@ -1078,15 +1060,14 @@ public class MelangeJFrame extends JFrame {
 				} catch (IOException e) {
 					e.printStackTrace();
 				}
-				openFileBuffer(canonicalBufferFileName);
+				CreateThumbnailsJP task = new CreateThumbnailsJP(this, canonicalBufferFileName, jListBuffer);
+				task.start();
 	    }
 	}
-
-	public void openFileBuffer(String filename){
-		CreateThumbnailsJP task = new CreateThumbnailsJP(this, filename, jListBuffer);
-		task.start();
-	}
 	
+	/** 
+	 *  Wrapper for calls like {@link ArrayListTransferHandler#onReceivedFileList()}.
+	 */
 	public void openFileMain(String filename){
 		canonicalMainFileName = filename;
 		this.setTitle(projectName + ": " + canonicalMainFileName);
@@ -1096,6 +1077,9 @@ public class MelangeJFrame extends JFrame {
 		task.start();
 	}
 
+	/** 
+	 *  Wrapper for calls like {@link MelangeJFrame#getJButtonFileOpen()}.
+	 */
 	private void onFileOpenMain(){
 		JFileChooser chooser = new JFileChooser(currentDirectoryPath);
 	    //FileNameExtensionFilter filter = new FileNameExtensionFilter("PDF Files", "pdf");
@@ -1113,8 +1097,10 @@ public class MelangeJFrame extends JFrame {
 	    }
 	}
 
-	private void onList1Down(){
-		
+	/** 
+	 *  Wrapper for calls like {@link MelangeJFrame#getJButtonDown()()}.
+	 */
+	private void onList1Down(){		
 		//int index1;
 		int idx[] = jListMain.getSelectedIndices();
 		int lastIdx = idx[idx.length-1];
@@ -1137,6 +1123,9 @@ public class MelangeJFrame extends JFrame {
 		}
 	}
 
+	/** 
+	 *  Wrapper for calls like {@link MelangeJFrame#getJButtonUp()}.
+	 */
 	private void onList1Up(){		
 		PageNode node = null;
 		int idx[] = jListMain.getSelectedIndices();
@@ -1158,6 +1147,9 @@ public class MelangeJFrame extends JFrame {
 		}
 	}
 
+	/** 
+	 *  Wrapper for calls like FileNew. 
+	 */
 	private void onMainFileNew(){
 		
 		listContentMain.clear();
@@ -1165,6 +1157,12 @@ public class MelangeJFrame extends JFrame {
 		this.setTitle(projectName + ": " + canonicalMainFileName);
 	}
 
+	/** 
+	 *  Wrapper for rotate calls like {@link MelangeJFrame#getJButtonRotateLeft()} 
+	 *  or {@link MelangeJFrame#getJButtonRotateRight()}.
+	 *  
+	 *	@param CWorCCW {@link DIRECTION#CCW} or {@link DIRECTION#CW}.
+	 */
 	private void onRotate(int CWorCCW){
 		if (jListMain.isSelectionEmpty() == false) {
 
@@ -1189,6 +1187,11 @@ public class MelangeJFrame extends JFrame {
 		}
 	}
 
+	/** 
+	 *  Wrapper for save calls like FileSave or FileSaveAs.
+	 *  
+	 *	@param fileName name of file to save.
+	 */
 	private void onFileSave(String fileName){
 		boolean saveIt = false;
 		
@@ -1237,6 +1240,16 @@ public class MelangeJFrame extends JFrame {
 		}
 	}
 
+	/** 
+	 *  Main save method.
+	 *  <p> 
+	 *  Saves all elements of the main list represented with its {@link MelangeJFrame#listContentMain content} 
+	 *  to the specified file.
+	 *  
+	 *	@param fileName name of file to save.
+	 *	@throws IOException on File IO error.
+	 *	@throws DocumentException on itext PDF error. 
+	 */
 	private void saveFile(String fileName) throws IOException, DocumentException{
 		File file =     new File(fileName);
 		File tmpfile =  File.createTempFile("Mixer", null, file.getParentFile());
@@ -1281,7 +1294,9 @@ public class MelangeJFrame extends JFrame {
 	/**
 	 * This method creates a preview of a pdf page on a jLabel.
 	 * It uses the jPedal Renderer org.jpedal.pdfDecoder
-	 * @throws Exception 
+	 * 
+	 * @param node element that represents the page to be rendered.
+	 * @throws Exception on error.
 	 */
 	private void showPreviewJP(PageNode node) throws Exception{
 		double zoom = 1;
@@ -1330,49 +1345,49 @@ public class MelangeJFrame extends JFrame {
 		setCursor(cursor);
 }
 
-	/**
-	 * This method creates a preview of a pdf page on a jLabel.
-	 * It uses the Sun Renderer com.sun.pdfview.
-	private void showPreviewSR(PageNode node) throws IOException{
-        //load a pdf from a byte buffer
-        File file = new File(node.file);
-        RandomAccessFile raf = new RandomAccessFile(file, "r");
-        FileChannel channel = raf.getChannel();
-        ByteBuffer buf = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
-        PDFFile pdffile = new PDFFile(buf);
-
-        // draw the first page to an image
-        PDFPage page = pdffile.getPage(node.pagenumber);
-        
-        //get the width and height for the doc at the default zoom 
-        Rectangle rectClip = new Rectangle(0,0,
-                (int)page.getBBox().getWidth(),
-                (int)page.getBBox().getHeight());
-        
-        Rectangle rectLabel = new Rectangle(0,0,
-                (int)jLabelPreview.getWidth(),
-                (int)jLabelPreview.getHeight());
-     
-        // calculate the page ratio
-        double ratioClip = rectClip.getWidth()/rectClip.getHeight();
-        double ratioLabel = rectLabel.getWidth()/rectLabel.getHeight();
-        if (ratioClip < ratioLabel)
-        	rectLabel.width =  (int)(rectLabel.height * ratioClip);
-        else
-        	rectLabel.height = (int)(rectLabel.width / ratioClip);
-        //generate the image
-        Image img = page.getImage(
-                rectLabel.width, rectLabel.height, //width & height
-                rectClip, // clip rect
-                null, // null for the ImageObserver
-                true, // fill background with white
-                true  // block until drawing is done
-                );
-        
-        //show the image in the panel
-        jLabelPreview.setIcon(new ImageIcon(img));
-	}
-	 */
+//	/**
+//	 * This method creates a preview of a pdf page on a jLabel.
+//	 * It uses the Sun Renderer com.sun.pdfview.
+//	 */
+//	private void showPreviewSR(PageNode node) throws IOException{
+//        //load a pdf from a byte buffer
+//        File file = new File(node.file);
+//        RandomAccessFile raf = new RandomAccessFile(file, "r");
+//        FileChannel channel = raf.getChannel();
+//        ByteBuffer buf = channel.map(FileChannel.MapMode.READ_ONLY, 0, channel.size());
+//        PDFFile pdffile = new PDFFile(buf);
+//
+//        // draw the first page to an image
+//        PDFPage page = pdffile.getPage(node.pagenumber);
+//        
+//        //get the width and height for the doc at the default zoom 
+//        Rectangle rectClip = new Rectangle(0,0,
+//                (int)page.getBBox().getWidth(),
+//                (int)page.getBBox().getHeight());
+//        
+//        Rectangle rectLabel = new Rectangle(0,0,
+//                (int)jLabelPreview.getWidth(),
+//                (int)jLabelPreview.getHeight());
+//     
+//        // calculate the page ratio
+//        double ratioClip = rectClip.getWidth()/rectClip.getHeight();
+//        double ratioLabel = rectLabel.getWidth()/rectLabel.getHeight();
+//        if (ratioClip < ratioLabel)
+//        	rectLabel.width =  (int)(rectLabel.height * ratioClip);
+//        else
+//        	rectLabel.height = (int)(rectLabel.width / ratioClip);
+//        //generate the image
+//        Image img = page.getImage(
+//                rectLabel.width, rectLabel.height, //width & height
+//                rectClip, // clip rect
+//                null, // null for the ImageObserver
+//                true, // fill background with white
+//                true  // block until drawing is done
+//                );
+//        
+//        //show the image in the panel
+//        jLabelPreview.setIcon(new ImageIcon(img));
+//	}
 
 	/**
 	 * This method initializes jMenuItemAbout	

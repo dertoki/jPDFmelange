@@ -20,60 +20,55 @@
 package jPDFmelange;
 
 import java.io.File;
-import java.io.FilenameFilter;
-
 import javax.swing.filechooser.FileFilter;
 
 
+/** 
+ *  Class to filter files with pdf extension, used for file dialog.
+ */
 public class PDFFilter extends FileFilter {
 
-	public boolean accept(File arg0) {
-	       if (arg0.isDirectory()) {
+	/** 
+	 *  Check if files have the extension ".pdf" or ".PDF".
+	 *  
+	 *	@param file file to check.
+	 *	@return <code>true</code> when extension is supported, <code>false</code> if not supported.
+	 */
+	public boolean accept(File file) {
+	       if (file.isDirectory()) {
 	            return true;
-	        }
+	       }
 
-	        String extension = getExtension(arg0);
-	        if (extension != null) {
-	            if (extension.equals("pdf") ||
-	                extension.equals("PDF")) {
-	                    return true;
-	            } else {
-	                return false;
-	            }
-	        }
-
-		return false;
+	       if (file.getName().toLowerCase().endsWith( ".pdf" ))
+	    	   return true;
+	       else 
+	    	   return false;
 	}
 
+	/** 
+	 *  Returns a description of the filter.
+	 *  
+	 *	@return String describing the filter.
+	 */
 	public String getDescription() {
 		return "Portable Document Format, PDF";
-	}
-	   
-	public static String getExtension(File arg0) {
-	        String ext = null;
-	        String s = arg0.getName();
-	        int i = s.lastIndexOf('.');
-
-	        if (i > 0 &&  i < s.length() - 1) {
-	            ext = s.substring(i+1).toLowerCase();
-	        }
-	        
-	        return ext;
-    }
-
+	}	   
 }
 
-class PropertiesFilenameFilter implements FilenameFilter 
-{ 
-  public boolean accept( File f, String s ) 
-  { 
-	  boolean isLocalePropertyFileName = false;
-	  if (s.toLowerCase().endsWith( ".properties" ) || s.toLowerCase().startsWith("MelangeMessages"))
-		  isLocalePropertyFileName = true;
-	  else 
-		  isLocalePropertyFileName = false;
-    return isLocalePropertyFileName;
-  } 
-} 
+///** 
+// *  Class to filter properties files.
+// */
+//class PropertiesFilenameFilter implements FilenameFilter 
+//{ 
+//  public boolean accept( File f, String s ) 
+//  { 
+//	  boolean isLocalePropertyFileName = false;
+//	  if (s.toLowerCase().endsWith( ".properties" ) || s.toLowerCase().startsWith("MelangeMessages"))
+//		  isLocalePropertyFileName = true;
+//	  else 
+//		  isLocalePropertyFileName = false;
+//    return isLocalePropertyFileName;
+//  } 
+//} 
  
 

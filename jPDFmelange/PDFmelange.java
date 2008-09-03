@@ -21,11 +21,15 @@ package jPDFmelange;
 
 import java.io.File;
 
-
+/**
+ * A simple starter.
+ * 
+ * @author tobias tandetzki 30.08.2008
+ */
 public class PDFmelange {
 
 	/**
-	 * @param args
+	 * @param argv file to open.
 	 */
 	public static void main(String argv[]) {
 		

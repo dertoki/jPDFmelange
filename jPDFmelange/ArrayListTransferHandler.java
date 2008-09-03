@@ -35,11 +35,12 @@ import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.TransferHandler;
 
-
+/**
+ * Transferhandler, used for DnD to and from internal lists and from OS filemanager.
+ * 
+ * @author tobias tandetzki 30.08.2008
+ */
 public class ArrayListTransferHandler extends TransferHandler {
-    /**
-	 * 
-	 */
 	private static final long serialVersionUID = 8465952157592069923L;
 	DataFlavor localArrayListFlavor, serialArrayListFlavor;
     String localArrayListType = DataFlavor.javaJVMLocalObjectMimeType + ";class=java.util.ArrayList";
@@ -49,6 +50,9 @@ public class ArrayListTransferHandler extends TransferHandler {
     int sourceIdx[] = null;
     int targetIdx[] = null;
 
+	/** 
+	 *  Creates the Flavor for internal list transfer. 
+	 */
     public ArrayListTransferHandler() {
         try {
             localArrayListFlavor = new DataFlavor(localArrayListType);
@@ -59,6 +63,14 @@ public class ArrayListTransferHandler extends TransferHandler {
         serialArrayListFlavor = new DataFlavor(ArrayList.class,"ArrayList");
     }
 
+	/** 
+	 *  Is called when a drop event occurs.<br>
+	 *  Manages data flow depending on the transferables flavor.
+	 *   
+	 *	@param c The GUI element receiving the data.
+	 *	@param t data element that is transfered.
+	 *	@return <code>true</code> when flavor is supported, else <code>false</code>.
+	 */
     public boolean importData(JComponent c, Transferable t) {
         DataFlavor flavors[] = t.getTransferDataFlavors();
 
@@ -84,17 +96,34 @@ public class ArrayListTransferHandler extends TransferHandler {
 		}
     }
 
-    private boolean onReceivedFileList(List files) throws IOException{
+	/** 
+	 *  Handling a list of files when a JList receives a transfer.
+	 *  <p> 
+	 *  Starts file opening task for each file.<br>
+	 *  This happens when the transferable has following flavors:
+	 *  <ul> 
+	 *  	<li>java.awt.datatransfer.DataFlavor.isFlavorJavaFileListType()
+	 *  	<li>java.awt.datatransfer.DataFlavor.isFlavorTextType()
+	 *  </ul>
+	 *  <p>
+	 *  If JList is our main list then the file is inserted to the drop position,<br>
+	 *  if JList is our buffer list, the file is appended to the list.
+	 *
+	 *	@param files list of File elements that are casted as java.io.File.
+	 *	@return <code>true</code> when tasks have been started, <code>false</code> when no files processed.
+	 *  @throws IOException if file does not exist.
+	 */
+    private boolean onReceivedFileList(ArrayList files) throws IOException{
 
     	// Check if the dropped files are actually of type pdf.
     	PDFFilter filter = new PDFFilter();
         for (int i=0; i<files.size(); i++){
     		if (!filter.accept((File)files.get(i))){
-    			System.out.println("removing non PDF-File from list: " + ((File)files.get(i)).getCanonicalPath());
-    			files.remove(i);
+    			File file = (File) files.remove(i);
+    			System.out.println("Removing non PDF-File from list: " + file.getName());
         	}
         }
-        if (files.size() == 0) return false;
+        if (files.isEmpty()) return false;
         
         // Insert the dropped files in the selected list Main or list Buffer.
         //
@@ -135,11 +164,19 @@ public class ArrayListTransferHandler extends TransferHandler {
         return true;
     }
     
+	/** 
+	 *  Manages Drops with <code>java.awt.datatransfer.DataFlavor.javaFileListFlavor</code>.
+	 *  <p> 
+	 *  This occurs only with windows (Tested with windows 98 and windows XP).
+	 *  
+	 *	@param t data element that is transfered.
+	 *	@return <code>true</code> when flavor is supported, <code>false</code> on error.
+	 */
     private boolean onFileListFlavor(Transferable t){
         List files;
 		try {
 			files = (List)t.getTransferData(java.awt.datatransfer.DataFlavor.javaFileListFlavor);
-			return onReceivedFileList(files);
+			return onReceivedFileList(new ArrayList(files));
 		} catch (UnsupportedFlavorException e) {
             System.out.println("importData: unsupported data flavor");
             return false;
@@ -149,6 +186,14 @@ public class ArrayListTransferHandler extends TransferHandler {
 		}            	
     }
     
+	/** 
+	 *  Manages Drops with text type flavor.
+	 *  <p> 
+	 *  This occurs with gnome and kde.
+	 *  
+	 *	@param t data element that is transfered.
+	 *	@return <code>true</code> when flavor is supported, <code>false</code> on error.
+	 */
     private boolean onTextTypeFlavor(Transferable t){
     	ArrayList files = new ArrayList();
     	DataFlavor flavor = DataFlavor.selectBestTextFlavor(t.getTransferDataFlavors());
@@ -156,12 +201,11 @@ public class ArrayListTransferHandler extends TransferHandler {
 		try {
 			reader = new BufferedReader(flavor.getReaderForText(t));
 	        for (String line = reader.readLine(); line!=null; line = reader.readLine()){
-	        	//if(("" + (char)0).equals(line)) continue;
 	        	if(Character.toString('\000').equals(line)) continue;
 				URI uri = new URI(line);
 				files.add(new File(uri));
 	        }
-	    	return onReceivedFileList((List)files);
+	    	return onReceivedFileList(files);
 		} catch (UnsupportedFlavorException e1) {
             System.out.println("importData: unsupported data flavor");
             return false;
@@ -174,6 +218,15 @@ public class ArrayListTransferHandler extends TransferHandler {
 		}
     }
     
+	/** 
+	 *  Handling DnD when a JList to JList transfer is initiated.
+	 *  <p> 
+	 *  Depending on source and target, the transfer is executed.
+	 *  
+	 *	@param t data element that is transfered.
+	 *	@param flavor indicates how to interpret the transfered data.
+	 *	@return <code>false</code> on error.
+	 */
     private boolean onArrayListFlavor(Transferable t, DataFlavor flavor){
         try {
 			ArrayList transferList =  (ArrayList)t.getTransferData(flavor);
@@ -224,6 +277,15 @@ public class ArrayListTransferHandler extends TransferHandler {
 		}
     }
     
+	/** 
+	 *  Handling DnD when a JList to JList transfer is done.
+	 *  <p> 
+	 *  If source and target is not equal the transfered data is removed from our source.
+	 *  
+	 *	@param c The GUI element receiving the data.
+	 *	@param data data element that is transfered.
+	 *	@param action Indicates if move or copy was initiated.
+	 */
     protected void exportDone(JComponent c, Transferable data, int action) {
     	// We just need MOVE, so ignore possibilities given with action.
     	
@@ -256,6 +318,12 @@ public class ArrayListTransferHandler extends TransferHandler {
         }
     }
 
+	/** 
+	 *  Test if the array of flavors contains <code>FlavorJavaFileListType</code>.
+	 *   
+	 *	@param flavors array of flavors.
+	 *	@return <code>false</code> if flavor is not supported.
+	 */
     private boolean hasFileListFlavor(DataFlavor[] flavors) {
         for (int i = 0; i < flavors.length; i++) {
         	if (flavors[i].isFlavorJavaFileListType()){
@@ -265,6 +333,12 @@ public class ArrayListTransferHandler extends TransferHandler {
         return false;
     }
 
+	/** 
+	 *  Test if the array of flavors contains <code>FlavorTextType</code>.
+	 *   
+	 *	@param flavors array of flavors.
+	 *	@return <code>false</code> if flavor is not supported.
+	 */
     private boolean hasTextTypeFlavor(DataFlavor[] flavors) {
         for (int i = 0; i < flavors.length; i++) {
         	if (flavors[i].isFlavorTextType()){
@@ -274,6 +348,12 @@ public class ArrayListTransferHandler extends TransferHandler {
         return false;
     }
 
+	/** 
+	 *  Test if the array of flavors contains <code>localArrayListFlavor</code>.
+	 *   
+	 *	@param flavors array of flavors.
+	 *	@return <code>false</code> if flavor is not supported.
+	 */
     private boolean hasLocalArrayListFlavor(DataFlavor[] flavors) {
         if (localArrayListFlavor == null) {
             return false;
@@ -287,6 +367,12 @@ public class ArrayListTransferHandler extends TransferHandler {
         return false;
     }
 
+	/** 
+	 *  Test if the array of flavors contains <code>serialArrayListFlavor</code>.
+	 *   
+	 *	@param flavors array of flavors.
+	 *	@return <code>false</code> if flavor is not supported.
+	 */
     private boolean hasSerialArrayListFlavor(DataFlavor[] flavors) {
         if (serialArrayListFlavor == null) {
             return false;
@@ -300,7 +386,14 @@ public class ArrayListTransferHandler extends TransferHandler {
         return false;
     }
 
-    public boolean canImport(JComponent c, DataFlavor[] flavors) {
+	/** 
+	 *  Test if the element, receiving the drop supports the its flavor.
+	 *   
+	 *	@param c The GUI element receiving the data.
+	 *	@param flavors array of flavors.
+	 *	@return <code>false</code> if flavor is not supported.
+	 */
+   public boolean canImport(JComponent c, DataFlavor[] flavors) {
         if (hasFileListFlavor(flavors))  { return true; }
         if (hasTextTypeFlavor(flavors))  { return true; }
         if (hasLocalArrayListFlavor(flavors))  { return true; }
@@ -308,6 +401,12 @@ public class ArrayListTransferHandler extends TransferHandler {
         return false;
     }
 
+	/** 
+	 *  Creates data for transfer when Drag is initiated on a JList.
+	 *   
+	 *	@param c The GUI element receiving the data.
+	 *	@return data element that is transfered.
+	 */
     protected Transferable createTransferable(JComponent c) {
         
         if (c instanceof JList) {
@@ -326,11 +425,20 @@ public class ArrayListTransferHandler extends TransferHandler {
         return null;
     }
 
+	/** 
+	 *  Specify the supported actions.
+	 *   
+	 *	@param c The GUI element receiving the data.
+	 *	@return int <code>MOVE</code>.
+	 */
     public int getSourceActions(JComponent c) {
         //return COPY_OR_MOVE;
         return MOVE;
     }
 
+    /**
+     * Class definition for our Transferable based ArrayList.
+     */
     public class ArrayListTransferable implements Transferable {
         ArrayList data;
 

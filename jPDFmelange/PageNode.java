@@ -24,37 +24,69 @@ import java.awt.image.BufferedImage;
 import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 
+/**
+ * This class extends JLabel with some attributes of PDF pages.
+ */
 public class PageNode extends JLabel {
-	/**
-	 * This class extends JLabel with some attributes of PDF pages.
-	 */
+
 	private static final long serialVersionUID = 1624968555506269609L;
-	String filename = "";
+	String filename = ""; // canonicalfilename
 	String password = null;
 	int pagenumber; // pagenumber 1 = Page 1
 	int rotation;   // 0, 90, 180, 270, 360
 	//int format;     // A4, A3, A2, A1, A0, ...
 
+	/** 
+	 *  Store the password.
+	 *   
+	 *	@param password password.
+	 */
 	public void setPassword(String password){
 		this.password = password;
 	}
 	
+	/** 
+	 *  Store the canonical filename.
+	 *   
+	 *	@param name canonical filename.
+	 */
 	public void setFilename(String name){
 		this.filename = name;
 	}
 	
+	/** 
+	 *  Store the pagenumber.
+	 *   
+	 *	@param i pagenumber
+	 */
 	public void setPagenumber(int i){
 		this.pagenumber = i;
 	}
 	
+	/** 
+	 *  Store the page rotation.
+	 *   
+	 *	@param iRot page rotation. This should be a value of [0, 90, 180, 270, 360].
+	 */
 	public void setRotation(int iRot){
 		this.rotation = iRot;
 	}
 	
+//	/** 
+//	 *  Store the page format (A0, A1, A2, A3, A4, ...). 
+//	 *   
+//	 *	@param iForm page format.
+//	 */
 //	public void setFormat(int iForm){
 //		this.format = iForm;
 //	}
 
+	/** 
+	 *  Execute a page rotation of the embedded image icon.
+	 *   
+	 *	@param CWorCCW clockwise or counterclockwise. 
+	 *         This should be a value of [{@link DIRECTION#CW}, {@link DIRECTION#CCW}].
+	 */
 	public void rotate(int CWorCCW){
 
 		// Labellist: rotate element
@@ -83,6 +115,12 @@ public class PageNode extends JLabel {
    		this.setRotation(rotation);
 	}
 	
+	/** 
+	 *  Execute a counterclockwise page rotation on a {@link java.awt.image.BufferedImage}.
+	 *   
+	 *	@param bi input image.
+	 *  @return output image.
+	 */
 	private BufferedImage rotate90CCW(BufferedImage bi)
 	{
 		int width = bi.getWidth();
@@ -97,6 +135,12 @@ public class PageNode extends JLabel {
 		return biRot;
 	}
 
+	/** 
+	 *  Execute a clockwise page rotation on a {@link java.awt.image.BufferedImage}.
+	 *   
+	 *	@param bi input image.
+	 *  @return output image.
+	 */
 	private BufferedImage rotate90CW(BufferedImage bi)
 	{
 		int width = bi.getWidth();
@@ -117,6 +161,8 @@ public class PageNode extends JLabel {
  *    This is used in a switch statement.
  */
 class DIRECTION { 
-	public static final int CCW = -90;	//!< 'counter clockwise'
-	public static final int CW 	= +90;	//!< 'clockwise'
+	/** counterclockwise */
+	public static final int CCW = -90;
+	/** clockwise */
+	public static final int CW 	= +90;
 }

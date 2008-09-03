@@ -35,6 +35,11 @@ import javax.swing.JPasswordField;
 import javax.swing.JTextArea;
 import javax.swing.KeyStroke;
 
+/**
+ * A simple input dialog to get the pdf  password. 
+ * 
+ * @author tobias tandetzki 30.08.2008
+ */
 public class PasswordDialog extends JDialog {
 
 	private static final long serialVersionUID = 1L;
@@ -145,8 +150,6 @@ public class PasswordDialog extends JDialog {
 
 	/**
 	 * This method initializes this
-	 * 
-	 * @return void
 	 */
 	private void initialize() {
 		this.setModal(true);
@@ -187,6 +190,9 @@ public class PasswordDialog extends JDialog {
 		return jContentPane;
 	}
 
+	/** 
+	 *  Wrapper for positive dialog closing.
+	 */
 	private void onOK(){
 		isCanceled = false;
 		password = String.valueOf(jPasswordField.getPassword());
@@ -196,6 +202,9 @@ public class PasswordDialog extends JDialog {
 		PasswordDialog.this.dispose();						
 	}
 	
+	/** 
+	 *  Wrapper for negative dialog closing.
+	 */
 	private void onCancel(){
 		isCanceled = true;
 		password = "";
