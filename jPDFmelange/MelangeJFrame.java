@@ -81,7 +81,7 @@ public class MelangeJFrame extends JFrame {
 	private static final long serialVersionUID = 4042464615276354878L;
 	
 	public static final String projectName = "jPDFmelange";
-	public static final String projectVersion = "0.2.0";
+	public static final String projectVersion = "0.2.1";
 	public String propertiesFileName = System.getProperty("user.dir").concat(System.getProperty("file.separator")).concat("melange.rc");
 	public String canonicalBufferFileName = "";
 	public String canonicalMainFileName  = "";
@@ -1288,7 +1288,15 @@ public class MelangeJFrame extends JFrame {
 		// move new content to original file name
 		file = new File(fileName);
 		if (tmpfile.renameTo(file))
-		  System.out.println("<" + tmpfile.getName() + "> is copied to <" + file.getName() + "> ");
+			System.out.println("<" + tmpfile.getName() + "> is copied to <" + file.getName() + "> ");
+		else {
+			JOptionPane.showMessageDialog(MelangeJFrame.this,
+					messages.getString("canNotWriteFile") + file.getName() + messages.getString("trySaveAs"),
+					messages.getString("warning"),
+					JOptionPane.WARNING_MESSAGE);
+			System.out.println(messages.getString("canNotWriteFile") + file.getName() + messages.getString("trySaveAs"));
+		}
+			
 	}
 
 	/**
