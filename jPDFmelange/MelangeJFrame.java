@@ -23,6 +23,7 @@ package jPDFmelange;
 import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Cursor;
+import java.awt.Desktop;
 import java.awt.Dimension;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -36,6 +37,8 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Properties;
@@ -59,7 +62,6 @@ import javax.swing.KeyStroke;
 import javax.swing.SwingConstants;
 
 import org.jpedal.PdfDecoder;
-
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
 import com.lowagie.text.pdf.PdfCopy;
@@ -68,10 +70,8 @@ import com.lowagie.text.pdf.PdfName;
 import com.lowagie.text.pdf.PdfNumber;
 import com.lowagie.text.pdf.PdfReader;
 
-import edu.stanford.ejalbert.BrowserLauncher;
-import edu.stanford.ejalbert.exception.BrowserLaunchingInitializingException;
-import edu.stanford.ejalbert.exception.UnsupportedOperatingSystemException;
 import javax.swing.JCheckBoxMenuItem;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  *  Projekct Main Class.
@@ -81,7 +81,7 @@ public class MelangeJFrame extends JFrame {
 	private static final long serialVersionUID = 4042464615276354878L;
 	
 	public static final String projectName = "jPDFmelange";
-	public static final String projectVersion = "0.2.1";
+	public static final String projectVersion = "0.3.0";
 	public String propertiesFileName = System.getProperty("user.dir").concat(System.getProperty("file.separator")).concat("melange.rc");
 	public String canonicalBufferFileName = "";
 	public String canonicalMainFileName  = "";
@@ -94,7 +94,7 @@ public class MelangeJFrame extends JFrame {
     public int iconHeight = 70; // in pixels
     public int imageScalingAlgorithm = BufferedImage.SCALE_SMOOTH;
 	public static Locale locale = Locale.getDefault();
-	public static ArrayList localeTable = new ArrayList();
+	public static ArrayList<Locale> localeTable = new ArrayList<Locale>();
     /*
      * Declaration for Java 5 (Java SE 1.5 or higher).  
      * The Sun Renderer com.sun.pdfview needs Java 5 (Java SE 1.5 or higher).
@@ -1049,10 +1049,8 @@ public class MelangeJFrame extends JFrame {
 	 */
 	private void onFileOpenBuffer(){
 		JFileChooser chooser = new JFileChooser(currentDirectoryPath);
-	    PDFFilter filter = new PDFFilter();
+	    FileNameExtensionFilter filter = new FileNameExtensionFilter("PDF Files", "pdf");
 	    chooser.setFileFilter(filter);
-	    //FileNameExtensionFilter filter = new FileNameExtensionFilter("PDF Files", "pdf");
-	    //chooser.setFileFilter(filter);
 	    int returnVal = chooser.showOpenDialog(MelangeJFrame.this);
 	    if(returnVal == JFileChooser.APPROVE_OPTION) {
 	        	try {
@@ -1082,9 +1080,7 @@ public class MelangeJFrame extends JFrame {
 	 */
 	private void onFileOpenMain(){
 		JFileChooser chooser = new JFileChooser(currentDirectoryPath);
-	    //FileNameExtensionFilter filter = new FileNameExtensionFilter("PDF Files", "pdf");
-	    //chooser.setFileFilter(filter);
-	    PDFFilter filter = new PDFFilter();
+	    FileNameExtensionFilter filter = new FileNameExtensionFilter("PDF Files", "pdf");
 	    chooser.setFileFilter(filter);
 	    int returnVal = chooser.showOpenDialog(MelangeJFrame.this);
 	    if(returnVal == JFileChooser.APPROVE_OPTION) {
@@ -1203,10 +1199,8 @@ public class MelangeJFrame extends JFrame {
 			return;
 		} else if (fileName.length() == 0) {
 			JFileChooser chooser = new JFileChooser(currentDirectoryPath);
-		    PDFFilter filter = new PDFFilter();
+		    FileNameExtensionFilter filter = new FileNameExtensionFilter("PDF Files", "pdf");
 		    chooser.setFileFilter(filter);
-		    //FileNameExtensionFilter filter = new FileNameExtensionFilter("PDF Files", "pdf");
-		    //chooser.setFileFilter(filter);
 		    int returnVal = chooser.showSaveDialog(MelangeJFrame.this);
 		    if(returnVal == JFileChooser.APPROVE_OPTION) {
 		        	try {
@@ -1565,13 +1559,12 @@ public class MelangeJFrame extends JFrame {
 			jMenuItemOnline.addActionListener(new java.awt.event.ActionListener() {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
 					try {
-						BrowserLauncher launcher = new BrowserLauncher();
-						launcher.openURLinBrowser("http://jpdfmelange.berlios.de");
-					} catch (BrowserLaunchingInitializingException e1) {
-						// TODO Automatisch erstellter Catch-Block
+						Desktop.getDesktop().browse(new URI("http://jpdfmelange.berlios.de"));
+					} catch (IOException e1) {
+						System.out.println("IOException");
 						e1.printStackTrace();
-					} catch (UnsupportedOperatingSystemException e1) {
-						// TODO Automatisch erstellter Catch-Block
+					} catch (URISyntaxException e1) {
+						System.out.println("URISyntaxException");
 						e1.printStackTrace();
 					}
 				}

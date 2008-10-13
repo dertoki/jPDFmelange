@@ -34,6 +34,7 @@ import javax.swing.DefaultListModel;
 import javax.swing.JComponent;
 import javax.swing.JList;
 import javax.swing.TransferHandler;
+import javax.swing.filechooser.FileNameExtensionFilter;
 
 /**
  * Transferhandler, used for DnD to and from internal lists and from OS filemanager.
@@ -113,10 +114,9 @@ public class ArrayListTransferHandler extends TransferHandler {
 	 *	@return <code>true</code> when tasks have been started, <code>false</code> when no files processed.
 	 *  @throws IOException if file does not exist.
 	 */
-    private boolean onReceivedFileList(ArrayList files) throws IOException{
+    private boolean onReceivedFileList(ArrayList<File> files) throws IOException{
 
-    	// Check if the dropped files are actually of type pdf.
-    	PDFFilter filter = new PDFFilter();
+	    FileNameExtensionFilter filter = new FileNameExtensionFilter("PDF Files", "pdf");
         for (int i=0; i<files.size(); i++){
     		if (!filter.accept((File)files.get(i))){
     			File file = (File) files.remove(i);
@@ -172,11 +172,12 @@ public class ArrayListTransferHandler extends TransferHandler {
 	 *	@param t data element that is transfered.
 	 *	@return <code>true</code> when flavor is supported, <code>false</code> on error.
 	 */
-    private boolean onFileListFlavor(Transferable t){
-        List files;
+    @SuppressWarnings("unchecked")
+	private boolean onFileListFlavor(Transferable t){
+        List<File> files;
 		try {
-			files = (List)t.getTransferData(java.awt.datatransfer.DataFlavor.javaFileListFlavor);
-			return onReceivedFileList(new ArrayList(files));
+			files = (List<File>)t.getTransferData(java.awt.datatransfer.DataFlavor.javaFileListFlavor);
+			return onReceivedFileList(new ArrayList<File>(files));
 		} catch (UnsupportedFlavorException e) {
             System.out.println("importData: unsupported data flavor");
             return false;
@@ -195,7 +196,7 @@ public class ArrayListTransferHandler extends TransferHandler {
 	 *	@return <code>true</code> when flavor is supported, <code>false</code> on error.
 	 */
     private boolean onTextTypeFlavor(Transferable t){
-    	ArrayList files = new ArrayList();
+    	ArrayList<File> files = new ArrayList<File>();
     	DataFlavor flavor = DataFlavor.selectBestTextFlavor(t.getTransferDataFlavors());
         BufferedReader reader;
 		try {
@@ -416,7 +417,7 @@ public class ArrayListTransferHandler extends TransferHandler {
             if (values == null || values.length == 0) {
                 return null;
             }
-            ArrayList transferList = new ArrayList(values.length);
+            ArrayList<Object> transferList = new ArrayList<Object>(values.length);
             for (int i = 0; i < values.length; i++) {
                 transferList.add(values[i]);
             }
@@ -440,9 +441,9 @@ public class ArrayListTransferHandler extends TransferHandler {
      * Class definition for our Transferable based ArrayList.
      */
     public class ArrayListTransferable implements Transferable {
-        ArrayList data;
+        ArrayList<Object> data;
 
-        public ArrayListTransferable(ArrayList alist) {
+        public ArrayListTransferable(ArrayList<Object> alist) {
             data = alist;
         }
 
