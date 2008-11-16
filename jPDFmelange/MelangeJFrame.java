@@ -81,7 +81,7 @@ public class MelangeJFrame extends JFrame {
 	private static final long serialVersionUID = 4042464615276354878L;
 	
 	public static final String projectName = "jPDFmelange";
-	public static final String projectVersion = "0.3.0";
+	public static final String projectVersion = "0.3.1";
 	public String propertiesFileName = System.getProperty("user.dir").concat(System.getProperty("file.separator")).concat("melange.rc");
 	public String canonicalBufferFileName = "";
 	public String canonicalMainFileName  = "";
@@ -1205,6 +1205,10 @@ public class MelangeJFrame extends JFrame {
 		    if(returnVal == JFileChooser.APPROVE_OPTION) {
 		        	try {
 						fileName = chooser.getSelectedFile().getCanonicalPath();
+						if (!fileName.endsWith(".pdf") && !fileName.endsWith(".PDF")){
+							fileName = fileName.concat(".pdf");
+							System.out.println("Expand filename with extension: " + fileName);
+						}
 						canonicalMainFileName = fileName;
 						this.setTitle(projectName + ": " + fileName);		
 					} catch (IOException e) {
