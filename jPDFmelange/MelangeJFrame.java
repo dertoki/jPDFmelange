@@ -30,6 +30,7 @@ import java.awt.GridBagLayout;
 import java.awt.Insets;
 import java.awt.Rectangle;
 import java.awt.event.ActionEvent;
+import java.awt.event.ItemEvent;
 import java.awt.event.KeyEvent;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -43,6 +44,7 @@ import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Properties;
 import java.util.ResourceBundle;
+import java.util.TreeMap;
 
 import javax.swing.DefaultListModel;
 import javax.swing.ImageIcon;
@@ -69,9 +71,13 @@ import com.lowagie.text.pdf.PdfDictionary;
 import com.lowagie.text.pdf.PdfName;
 import com.lowagie.text.pdf.PdfNumber;
 import com.lowagie.text.pdf.PdfReader;
-
+import com.lowagie.text.pdf.PdfWriter;
 import javax.swing.JCheckBoxMenuItem;
 import javax.swing.filechooser.FileNameExtensionFilter;
+import javax.swing.JComboBox;
+import javax.swing.JCheckBox;
+import javax.swing.JTextPane;
+import java.awt.Point;
 
 /**
  *  Projekct Main Class.
@@ -81,13 +87,17 @@ public class MelangeJFrame extends JFrame {
 	private static final long serialVersionUID = 4042464615276354878L;
 	
 	public static final String projectName = "jPDFmelange";
-	public static final String projectVersion = "0.3.1";
+	public static final String projectVersion = "0.3.2-beta";
 	public String propertiesFileName = System.getProperty("user.dir").concat(System.getProperty("file.separator")).concat("melange.rc");
 	public String canonicalBufferFileName = "";
 	public String canonicalMainFileName  = "";
 	public String currentDirectoryPath = "";
+	public int viewpref_layout = PdfWriter.PageLayoutSinglePage;
+	public int viewpref_mode = PdfWriter.PageModeUseNone;
 	public boolean showButtonsPanel = false;
 	private ArrayListTransferHandler arrayListHandler = null;
+	private TreeMap<String, Integer> PageMode = new TreeMap<String, Integer>();  //  @jve:decl-index=0:
+	private TreeMap<String, Integer> PageLayout = new TreeMap<String, Integer>();  //  @jve:decl-index=0:
 
 
 	// Properties set in propertiesFile
@@ -152,6 +162,18 @@ public class MelangeJFrame extends JFrame {
 	private JMenuItem jMenuItemOnline = null;
 
 	public JCheckBoxMenuItem jCheckBoxMenuItemShowMoveButtons = null;
+
+	private JPanel jPanelFileOptions = null;
+
+	private JComboBox jComboBoxPageMode = null;
+
+	private JCheckBox jCheckBoxEnablePDFViewerPrefs = null;
+
+	private JTextPane jTextPanePageMode = null;
+
+	private JTextPane jTextPanePageLayout = null;
+
+	private JComboBox jComboBoxPageLayout = null;
 
 	/**
 	 * This is the default constructor
@@ -875,7 +897,7 @@ public class MelangeJFrame extends JFrame {
 			jTabbedPane = new JTabbedPane();
 			jTabbedPane.addTab(messages.getString("PufferEditor"), null, getJPanelBufferEditor(), null);
 			jTabbedPane.addTab(messages.getString("Preview"), null, getJPanePreview(), null);
-			jTabbedPane.addTab(messages.getString("Preview"), null, getJPanePreview(), null);
+			jTabbedPane.addTab(messages.getString("FileOptions"), null, getJPanelFileOptions(), null);
 			jTabbedPane.addChangeListener(new javax.swing.event.ChangeListener() {
 				public void stateChanged(javax.swing.event.ChangeEvent e) {
 					if (indexOfPreviewPane == jTabbedPane.getSelectedIndex()){
@@ -901,34 +923,6 @@ public class MelangeJFrame extends JFrame {
 	 */
 	private void initialize() {
 
-//		//
-//		//  Check what language properties files are available.
-//		//      Make a list of all locals that are supported with a language properties file.
-//		//      This list is used within the options menu dialoge.
-//		//
-//	    String url = getClass().getResource("/resources").getFile();		
-//		System.out.println(url);
-//		File resourcesDir = new File(url); 
-//	    String fileNames[] = resourcesDir.list(new PropertiesFilenameFilter());
-//	    for (int i = 0; i < fileNames.length; i++ ){
-//	    	  String language = "", country = "", variant = "";
-//		      int l = fileNames[i].indexOf('_');
-//		      if (l > -1){
-//		    	  language = fileNames[i].substring(l+1, l+3);
-//	    		  int c = fileNames[i].indexOf('_', l+3);
-//	    		  if (c > -1){
-//	    			  country = fileNames[i].substring(c+1, c+3);
-//	    			  int v = fileNames[i].indexOf('_', c+3);
-//	    			  if (v > -1){
-//	    				  int dot = fileNames[i].indexOf('.', v);
-//	    				  variant = fileNames[i].substring(v+1, dot);
-//	    			  }
-//	    		  }
-//	    		  //System.out.println(fileNames[i] + " " + language + " " + country + " " + variant);
-//	    		  localeTable.add(new Locale(language, country, variant));
-//	    	  }
-//	    }
-		
 	    localeTable.add(new Locale("de"));
 	    localeTable.add(new Locale("en"));
 
@@ -950,6 +944,8 @@ public class MelangeJFrame extends JFrame {
 		System.out.println("-- using locale " + messages.getLocale().getDisplayName() + " --\n");
 				
 		arrayListHandler = new ArrayListTransferHandler();
+
+		
 		//
 		// Initailize the main window.
 		//
@@ -963,6 +959,27 @@ public class MelangeJFrame extends JFrame {
 				MelangeJFrame.this.dispose();
 			}
 		});			
+		
+		//
+		// Initialize PDF Document properties
+		//
+		
+		PageMode.put(messages.getString("PAGE_MODE_USE_NONE"), PdfWriter.PageModeUseNone);
+		// i don't know what this outlines mode is!
+		//PageMode.put(messages.getString("PAGE_MODE_USE_OUTLINES"), PdfWriter.PageModeUseOutlines);
+		PageMode.put(messages.getString("PAGE_MODE_FULL_SCREEN"), PdfWriter.PageModeFullScreen);
+		PageMode.put(messages.getString("PAGE_MODE_USE_THUMBS"), PdfWriter.PageModeUseThumbs);
+		PageMode.put(messages.getString("PAGE_MODE_USE_OC"), PdfWriter.PageModeUseOC);
+		PageMode.put(messages.getString("PAGE_MODE_USE_ATTACHMENTS"), PdfWriter.PageModeUseAttachments);
+		for (String key : PageMode.keySet()) jComboBoxPageMode.addItem(key);
+		
+		PageLayout.put(messages.getString("PAGE_LAYOUT_SINGLE_PAGE"), PdfWriter.PageLayoutSinglePage);
+		PageLayout.put(messages.getString("PAGE_LAYOUT_ONE_COLUMN"), PdfWriter.PageLayoutOneColumn);
+		PageLayout.put(messages.getString("PAGE_LAYOUT_TWO_COLUMN_LEFT"), PdfWriter.PageLayoutTwoColumnLeft);
+		PageLayout.put(messages.getString("PAGE_LAYOUT_TWO_COLUMN_RIGHT"), PdfWriter.PageLayoutTwoColumnRight);
+		PageLayout.put(messages.getString("PAGE_LAYOUT_TWO_PAGE_LEFT"), PdfWriter.PageLayoutTwoPageLeft);
+		PageLayout.put(messages.getString("PAGE_LAYOUT_TWO_PAGE_RIGHT"), PdfWriter.PageLayoutTwoColumnRight);
+		for (String key : PageLayout.keySet()) jComboBoxPageLayout.addItem(key);
 	}
 
 	/**
@@ -1274,6 +1291,17 @@ public class MelangeJFrame extends JFrame {
 			reader.close(); // close input file
 			System.out.println("Page " + node.pagenumber + "  File:" + node.filename + "  Rotation:" + node.rotation);
 		}
+		
+		//
+		// save page mode and layout preferences
+		//
+		if (jCheckBoxEnablePDFViewerPrefs.isSelected()){			
+			writer.setViewerPreferences(PageMode.get(jComboBoxPageMode.getSelectedItem()));
+			writer.setViewerPreferences(PageLayout.get(jComboBoxPageLayout.getSelectedItem()));
+			//System.out.println("Pagemode " + dict.get(PdfName.PAGEMODE));
+		}
+		
+		
 		pdfDoc.close(); // close Helper Class
 		writer.close(); // close output file
 		
@@ -1599,6 +1627,121 @@ public class MelangeJFrame extends JFrame {
 					});
 		}
 		return jCheckBoxMenuItemShowMoveButtons;
+	}
+
+	/**
+	 * This method initializes jPanelFileOptions	
+	 * 	
+	 * @return javax.swing.JPanel	
+	 */
+	private JPanel getJPanelFileOptions() {
+		if (jPanelFileOptions == null) {
+			jPanelFileOptions = new JPanel();
+			jPanelFileOptions.setLayout(null);
+			jPanelFileOptions.add(getJCheckBoxEnablePDFViewerPrefs(), null);
+			jPanelFileOptions.add(getJComboBoxPageMode(), null);
+			jPanelFileOptions.add(getJTextPanePageMode(), null);
+			jPanelFileOptions.add(getJTextPanePageLayout(), null);
+			jPanelFileOptions.add(getJComboBoxPageLayout(), null);
+		}
+		return jPanelFileOptions;
+	}
+
+	/**
+	 * This method initializes jComboBoxPageMode	
+	 * 	
+	 * @return javax.swing.JComboBox	
+	 */
+	private JComboBox getJComboBoxPageMode() {
+		if (jComboBoxPageMode == null) {
+			jComboBoxPageMode = new JComboBox();
+			jComboBoxPageMode.setEnabled(false);
+			jComboBoxPageMode.setSize(new Dimension(241, 24));
+			jComboBoxPageMode.setLocation(new Point(120, 40));
+		}
+		return jComboBoxPageMode;
+	}
+
+	/**
+	 * This method initializes jCheckBoxEnablePDFViewerPrefs	
+	 * 	
+	 * @return javax.swing.JCheckBox	
+	 */
+	private JCheckBox getJCheckBoxEnablePDFViewerPrefs() {
+		if (jCheckBoxEnablePDFViewerPrefs == null) {
+			jCheckBoxEnablePDFViewerPrefs = new JCheckBox();
+			jCheckBoxEnablePDFViewerPrefs.setSelected(false);
+			jCheckBoxEnablePDFViewerPrefs.setLocation(new Point(10, 10));
+			jCheckBoxEnablePDFViewerPrefs.setSize(new Dimension(351, 21));
+			jCheckBoxEnablePDFViewerPrefs.setText(messages.getString("enablePDFPreferences"));
+			jCheckBoxEnablePDFViewerPrefs.addItemListener(new java.awt.event.ItemListener() {
+				public void itemStateChanged(java.awt.event.ItemEvent e) {
+					if (e.getStateChange() == ItemEvent.SELECTED){
+						jTextPanePageMode.setForeground(Color.BLACK);
+						jComboBoxPageMode.setEnabled(true);
+						jTextPanePageLayout.setForeground(Color.BLACK);
+						jComboBoxPageLayout.setEnabled(true);
+					} else {
+						jTextPanePageMode.setForeground(Color.GRAY);
+						jComboBoxPageMode.setEnabled(false);
+						jTextPanePageLayout.setForeground(Color.GRAY);
+						jComboBoxPageLayout.setEnabled(false);
+					}
+				}
+			});
+		}
+		return jCheckBoxEnablePDFViewerPrefs;
+	}
+
+	/**
+	 * This method initializes jTextPanePageMode	
+	 * 	
+	 * @return javax.swing.JTextPane	
+	 */
+	private JTextPane getJTextPanePageMode() {
+		if (jTextPanePageMode == null) {
+			jTextPanePageMode = new JTextPane();
+			jTextPanePageMode.setText(messages.getString("PageMode"));
+			jTextPanePageMode.setForeground(Color.GRAY);
+			jTextPanePageMode.setLocation(new Point(10, 40));
+			jTextPanePageMode.setSize(new Dimension(100, 21));
+			jTextPanePageMode.setEditable(false);
+			jTextPanePageMode.setBackground(new Color(238, 238, 238));
+		}
+		return jTextPanePageMode;
+	}
+
+	/**
+	 * This method initializes jTextPanePageLayout	
+	 * 	
+	 * @return javax.swing.JTextPane	
+	 */
+	private JTextPane getJTextPanePageLayout() {
+		if (jTextPanePageLayout == null) {
+			jTextPanePageLayout = new JTextPane();
+			jTextPanePageLayout.setForeground(Color.GRAY);
+			jTextPanePageLayout.setText(messages.getString("PageLayout"));
+			jTextPanePageLayout.setLocation(new Point(10, 70));
+			jTextPanePageLayout.setSize(new Dimension(100, 21));
+			jTextPanePageLayout.setPreferredSize(new Dimension(70, 21));
+			jTextPanePageLayout.setEditable(false);
+			jTextPanePageLayout.setBackground(new Color(238, 238, 238));
+		}
+		return jTextPanePageLayout;
+	}
+
+	/**
+	 * This method initializes jComboBoxPageLayout	
+	 * 	
+	 * @return javax.swing.JComboBox	
+	 */
+	private JComboBox getJComboBoxPageLayout() {
+		if (jComboBoxPageLayout == null) {
+			jComboBoxPageLayout = new JComboBox();
+			jComboBoxPageLayout.setBounds(new Rectangle(120, 70, 241, 24));
+			jComboBoxPageLayout.setEnabled(false);
+		}
+		return jComboBoxPageLayout;
 	}
 	
 }  //  @jve:decl-index=0:visual-constraint="10,10"

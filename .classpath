@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry excluding="CVS/" kind="src" path=""/>
-	<classpathentry kind="lib" path="/home/tobi/src/eclipse/lib/bcprov-jdk14-138.jar"/>
-	<classpathentry kind="lib" path="/home/tobi/src/eclipse/lib/iText-2.1.0.jar"/>
-	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER/org.eclipse.jdt.internal.debug.ui.launcher.StandardVMType/java-6-sun-1.6.0.06"/>
-	<classpathentry kind="lib" path="/home/tobi/src/eclipse/lib/3.51b12_jpedal_gpl.jar"/>
-	<classpathentry kind="lib" path="/home/tobi/src/eclipse/lib/BrowserLauncher2-1_3.jar"/>
+	<classpathentry kind="src" path=""/>
+	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
+	<classpathentry kind="lib" path="/home/tobi/src/eclipse/lib/iText-2.1.6.jar"/>
+	<classpathentry kind="lib" path="/home/tobi/src/eclipse/lib/bcmail-jdk16-143.jar"/>
+	<classpathentry kind="lib" path="/home/tobi/src/eclipse/lib/bcprov-jdk16-143.jar"/>
+	<classpathentry kind="lib" path="/home/tobi/src/eclipse/lib/jpedal_gpl.jar"/>
 	<classpathentry kind="output" path=""/>
 </classpath>

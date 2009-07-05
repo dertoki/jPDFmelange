@@ -1,0 +1,14 @@
+#Fat Jar Configuration File
+#Sun Nov 16 18:50:17 CET 2008
+onejar.license.required=true
+manifest.classpath=
+manifest.removesigners=true
+onejar.checkbox=false
+jarname=/home/tobi/jPDFmelange/jPDFmelange-0.3.1.jar
+manifest.mergeall=true
+manifest.mainclass=jPDFmelange.PDFmelange
+manifest.file=<createnew>
+jarname.isextern=true
+onejar.expand=
+excludes=<po|jPDFmelange>~CVS/;<po|jPDFmelange>~jPDFmelange/~CVS/;<po|jPDFmelange>~icons/~CVS/;<po|jPDFmelange>~html/;<po|jPDFmelange>~.settings/;<po|jPDFmelange>~resources/~CVS/;<po|jPDFmelange>~resources/~MelangeMessages.properties~;<po|jPDFmelange>~.classpath;<po|jPDFmelange>~.project;<po|jPDFmelange>~settings.fatjar;<po|jPDFmelange>~jPDFmelange.txt;<po|jPDFmelange>~build.xml;<po|jPDFmelange>~javadoc.xml;<po|jPDFmelange>~melange.rc
+includes=
