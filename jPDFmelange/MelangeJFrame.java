@@ -66,6 +66,7 @@ import javax.swing.SwingConstants;
 import org.jpedal.PdfDecoder;
 import com.lowagie.text.Document;
 import com.lowagie.text.DocumentException;
+import com.lowagie.text.pdf.PdfBoolean;
 import com.lowagie.text.pdf.PdfCopy;
 import com.lowagie.text.pdf.PdfDictionary;
 import com.lowagie.text.pdf.PdfName;
@@ -78,6 +79,10 @@ import javax.swing.JComboBox;
 import javax.swing.JCheckBox;
 import javax.swing.JTextPane;
 import java.awt.Point;
+import javax.swing.BorderFactory;
+import java.awt.Font;
+import javax.swing.border.EtchedBorder;
+import java.lang.String;
 
 /**
  *  Projekct Main Class.
@@ -87,7 +92,7 @@ public class MelangeJFrame extends JFrame {
 	private static final long serialVersionUID = 4042464615276354878L;
 	
 	public static final String projectName = "jPDFmelange";
-	public static final String projectVersion = "0.3.2-beta";
+	public static final String projectVersion = "0.3.2";
 	public String propertiesFileName = System.getProperty("user.dir").concat(System.getProperty("file.separator")).concat("melange.rc");
 	public String canonicalBufferFileName = "";
 	public String canonicalMainFileName  = "";
@@ -174,6 +179,20 @@ public class MelangeJFrame extends JFrame {
 	private JTextPane jTextPanePageLayout = null;
 
 	private JComboBox jComboBoxPageLayout = null;
+
+	private JCheckBox jCheckBoxHideToolbar = null;
+
+	private JPanel jPanelViewPrefs = null;
+
+	private JCheckBox jCheckBoxHideMenubar = null;
+
+	private JCheckBox jCheckBoxHideWindowUI = null;
+
+	private JCheckBox jCheckBoxFitWindow = null;
+
+	private JCheckBox jCheckBoxCenterWindow = null;
+
+	private JCheckBox jCheckBoxDisplayDocTitle = null;
 
 	/**
 	 * This is the default constructor
@@ -964,22 +983,33 @@ public class MelangeJFrame extends JFrame {
 		// Initialize PDF Document properties
 		//
 		
-		PageMode.put(messages.getString("PAGE_MODE_USE_NONE"), PdfWriter.PageModeUseNone);
 		// i don't know what this outlines mode is!
 		//PageMode.put(messages.getString("PAGE_MODE_USE_OUTLINES"), PdfWriter.PageModeUseOutlines);
+		PageMode.put(messages.getString("PAGE_MODE_USE_NONE"), PdfWriter.PageModeUseNone);
+		jComboBoxPageMode.addItem(messages.getString("PAGE_MODE_USE_NONE"));
 		PageMode.put(messages.getString("PAGE_MODE_FULL_SCREEN"), PdfWriter.PageModeFullScreen);
+		jComboBoxPageMode.addItem(messages.getString("PAGE_MODE_FULL_SCREEN"));
 		PageMode.put(messages.getString("PAGE_MODE_USE_THUMBS"), PdfWriter.PageModeUseThumbs);
+		jComboBoxPageMode.addItem(messages.getString("PAGE_MODE_USE_THUMBS"));
 		PageMode.put(messages.getString("PAGE_MODE_USE_OC"), PdfWriter.PageModeUseOC);
+		jComboBoxPageMode.addItem(messages.getString("PAGE_MODE_USE_OC"));
 		PageMode.put(messages.getString("PAGE_MODE_USE_ATTACHMENTS"), PdfWriter.PageModeUseAttachments);
-		for (String key : PageMode.keySet()) jComboBoxPageMode.addItem(key);
+		jComboBoxPageMode.addItem(messages.getString("PAGE_MODE_USE_ATTACHMENTS"));
+		//for (String key : PageMode.keySet()) jComboBoxPageMode.addItem(key);
 		
 		PageLayout.put(messages.getString("PAGE_LAYOUT_SINGLE_PAGE"), PdfWriter.PageLayoutSinglePage);
+		jComboBoxPageLayout.addItem(messages.getString("PAGE_LAYOUT_SINGLE_PAGE"));
 		PageLayout.put(messages.getString("PAGE_LAYOUT_ONE_COLUMN"), PdfWriter.PageLayoutOneColumn);
+		jComboBoxPageLayout.addItem(messages.getString("PAGE_LAYOUT_ONE_COLUMN"));
 		PageLayout.put(messages.getString("PAGE_LAYOUT_TWO_COLUMN_LEFT"), PdfWriter.PageLayoutTwoColumnLeft);
+		jComboBoxPageLayout.addItem(messages.getString("PAGE_LAYOUT_TWO_COLUMN_LEFT"));
 		PageLayout.put(messages.getString("PAGE_LAYOUT_TWO_COLUMN_RIGHT"), PdfWriter.PageLayoutTwoColumnRight);
+		jComboBoxPageLayout.addItem(messages.getString("PAGE_LAYOUT_TWO_COLUMN_RIGHT"));
 		PageLayout.put(messages.getString("PAGE_LAYOUT_TWO_PAGE_LEFT"), PdfWriter.PageLayoutTwoPageLeft);
+		jComboBoxPageLayout.addItem(messages.getString("PAGE_LAYOUT_TWO_PAGE_LEFT"));
 		PageLayout.put(messages.getString("PAGE_LAYOUT_TWO_PAGE_RIGHT"), PdfWriter.PageLayoutTwoColumnRight);
-		for (String key : PageLayout.keySet()) jComboBoxPageLayout.addItem(key);
+		jComboBoxPageLayout.addItem(messages.getString("PAGE_LAYOUT_TWO_PAGE_RIGHT"));
+		//for (String key : PageLayout.keySet()) jComboBoxPageLayout.addItem(key);
 	}
 
 	/**
@@ -1298,9 +1328,17 @@ public class MelangeJFrame extends JFrame {
 		if (jCheckBoxEnablePDFViewerPrefs.isSelected()){			
 			writer.setViewerPreferences(PageMode.get(jComboBoxPageMode.getSelectedItem()));
 			writer.setViewerPreferences(PageLayout.get(jComboBoxPageLayout.getSelectedItem()));
+			if (jCheckBoxHideToolbar.isSelected()) writer.addViewerPreference(PdfName.HIDETOOLBAR, PdfBoolean.PDFTRUE);
+			if (jCheckBoxHideMenubar.isSelected()) writer.addViewerPreference(PdfName.HIDEMENUBAR, PdfBoolean.PDFTRUE);
+			if (jCheckBoxHideWindowUI.isSelected()) writer.addViewerPreference(PdfName.HIDEWINDOWUI, PdfBoolean.PDFTRUE);
+			if (jCheckBoxFitWindow.isSelected()) writer.addViewerPreference(PdfName.FITWINDOW, PdfBoolean.PDFTRUE);
+			if (jCheckBoxCenterWindow.isSelected()) writer.addViewerPreference(PdfName.CENTERWINDOW, PdfBoolean.PDFTRUE);
+			if (jCheckBoxDisplayDocTitle.isSelected()) 
+				writer.addViewerPreference(PdfName.DISPLAYDOCTITLE, PdfBoolean.PDFTRUE);
+			else
+				writer.addViewerPreference(PdfName.DISPLAYDOCTITLE, PdfBoolean.PDFFALSE);
 			//System.out.println("Pagemode " + dict.get(PdfName.PAGEMODE));
 		}
-		
 		
 		pdfDoc.close(); // close Helper Class
 		writer.close(); // close output file
@@ -1639,10 +1677,7 @@ public class MelangeJFrame extends JFrame {
 			jPanelFileOptions = new JPanel();
 			jPanelFileOptions.setLayout(null);
 			jPanelFileOptions.add(getJCheckBoxEnablePDFViewerPrefs(), null);
-			jPanelFileOptions.add(getJComboBoxPageMode(), null);
-			jPanelFileOptions.add(getJTextPanePageMode(), null);
-			jPanelFileOptions.add(getJTextPanePageLayout(), null);
-			jPanelFileOptions.add(getJComboBoxPageLayout(), null);
+			jPanelFileOptions.add(getJPanelViewPrefs(), null);
 		}
 		return jPanelFileOptions;
 	}
@@ -1656,8 +1691,7 @@ public class MelangeJFrame extends JFrame {
 		if (jComboBoxPageMode == null) {
 			jComboBoxPageMode = new JComboBox();
 			jComboBoxPageMode.setEnabled(false);
-			jComboBoxPageMode.setSize(new Dimension(241, 24));
-			jComboBoxPageMode.setLocation(new Point(120, 40));
+			jComboBoxPageMode.setBounds(new Rectangle(120, 20, 231, 24));
 		}
 		return jComboBoxPageMode;
 	}
@@ -1671,21 +1705,22 @@ public class MelangeJFrame extends JFrame {
 		if (jCheckBoxEnablePDFViewerPrefs == null) {
 			jCheckBoxEnablePDFViewerPrefs = new JCheckBox();
 			jCheckBoxEnablePDFViewerPrefs.setSelected(false);
-			jCheckBoxEnablePDFViewerPrefs.setLocation(new Point(10, 10));
+			jCheckBoxEnablePDFViewerPrefs.setLocation(new Point(5, 10));
 			jCheckBoxEnablePDFViewerPrefs.setSize(new Dimension(351, 21));
+			jCheckBoxEnablePDFViewerPrefs.setPreferredSize(new Dimension(340, 23));
 			jCheckBoxEnablePDFViewerPrefs.setText(messages.getString("enablePDFPreferences"));
 			jCheckBoxEnablePDFViewerPrefs.addItemListener(new java.awt.event.ItemListener() {
 				public void itemStateChanged(java.awt.event.ItemEvent e) {
 					if (e.getStateChange() == ItemEvent.SELECTED){
-						jTextPanePageMode.setForeground(Color.BLACK);
-						jComboBoxPageMode.setEnabled(true);
-						jTextPanePageLayout.setForeground(Color.BLACK);
-						jComboBoxPageLayout.setEnabled(true);
+						for (int i=0; i<jPanelViewPrefs.getComponentCount();i++){
+							jPanelViewPrefs.getComponent(i).setEnabled(true);
+							jPanelViewPrefs.getComponent(i).setForeground(Color.BLACK);
+						};
 					} else {
-						jTextPanePageMode.setForeground(Color.GRAY);
-						jComboBoxPageMode.setEnabled(false);
-						jTextPanePageLayout.setForeground(Color.GRAY);
-						jComboBoxPageLayout.setEnabled(false);
+						for (int i=0; i<jPanelViewPrefs.getComponentCount();i++){
+							jPanelViewPrefs.getComponent(i).setEnabled(false);
+							jPanelViewPrefs.getComponent(i).setForeground(Color.GRAY);
+						};
 					}
 				}
 			});
@@ -1703,9 +1738,8 @@ public class MelangeJFrame extends JFrame {
 			jTextPanePageMode = new JTextPane();
 			jTextPanePageMode.setText(messages.getString("PageMode"));
 			jTextPanePageMode.setForeground(Color.GRAY);
-			jTextPanePageMode.setLocation(new Point(10, 40));
-			jTextPanePageMode.setSize(new Dimension(100, 21));
 			jTextPanePageMode.setEditable(false);
+			jTextPanePageMode.setBounds(new Rectangle(10, 20, 101, 21));
 			jTextPanePageMode.setBackground(new Color(238, 238, 238));
 		}
 		return jTextPanePageMode;
@@ -1721,10 +1755,9 @@ public class MelangeJFrame extends JFrame {
 			jTextPanePageLayout = new JTextPane();
 			jTextPanePageLayout.setForeground(Color.GRAY);
 			jTextPanePageLayout.setText(messages.getString("PageLayout"));
-			jTextPanePageLayout.setLocation(new Point(10, 70));
-			jTextPanePageLayout.setSize(new Dimension(100, 21));
 			jTextPanePageLayout.setPreferredSize(new Dimension(70, 21));
 			jTextPanePageLayout.setEditable(false);
+			jTextPanePageLayout.setBounds(new Rectangle(10, 50, 101, 21));
 			jTextPanePageLayout.setBackground(new Color(238, 238, 238));
 		}
 		return jTextPanePageLayout;
@@ -1738,10 +1771,139 @@ public class MelangeJFrame extends JFrame {
 	private JComboBox getJComboBoxPageLayout() {
 		if (jComboBoxPageLayout == null) {
 			jComboBoxPageLayout = new JComboBox();
-			jComboBoxPageLayout.setBounds(new Rectangle(120, 70, 241, 24));
 			jComboBoxPageLayout.setEnabled(false);
+			jComboBoxPageLayout.setBounds(new Rectangle(120, 50, 231, 24));
 		}
 		return jComboBoxPageLayout;
 	}
-	
+
+	/**
+	 * This method initializes jCheckBoxHideToolbar	
+	 * 	
+	 * @return javax.swing.JCheckBox	
+	 */
+	private JCheckBox getJCheckBoxHideToolbar() {
+		if (jCheckBoxHideToolbar == null) {
+			String string = messages.getString("Page_HIDETOOLBAR");
+			jCheckBoxHideToolbar = new JCheckBox();
+			jCheckBoxHideToolbar.setText(string);
+			jCheckBoxHideToolbar.setFont(new Font("Dialog", Font.PLAIN, 12));
+			jCheckBoxHideToolbar.setEnabled(false);
+			jCheckBoxHideToolbar.setBounds(new Rectangle(10, 90, 341, 21));
+		}
+		return jCheckBoxHideToolbar;
+	}
+
+	/**
+	 * This method initializes jPanelViewPrefs	
+	 * 	
+	 * @return javax.swing.JPanel	
+	 */
+	private JPanel getJPanelViewPrefs() {
+		if (jPanelViewPrefs == null) {
+			jPanelViewPrefs = new JPanel();
+			jPanelViewPrefs.setLayout(null);
+			jPanelViewPrefs.setBounds(new Rectangle(0, 40, 361, 321));
+			jPanelViewPrefs.setBorder(BorderFactory.createEtchedBorder(EtchedBorder.LOWERED));
+			jPanelViewPrefs.add(getJTextPanePageLayout(), null);
+			jPanelViewPrefs.add(getJTextPanePageMode(), null);
+			jPanelViewPrefs.add(getJComboBoxPageLayout(), null);
+			jPanelViewPrefs.add(getJComboBoxPageMode(), null);
+			jPanelViewPrefs.add(getJCheckBoxHideToolbar(), null);
+			jPanelViewPrefs.add(getJCheckBoxHideMenubar(), null);
+			jPanelViewPrefs.add(getJCheckBoxHideWindowUI(), null);
+			jPanelViewPrefs.add(getJCheckBoxFitWindow(), null);
+			jPanelViewPrefs.add(getJCheckBoxCenterWindow(), null);
+			jPanelViewPrefs.add(getJCheckBoxDisplayDocTitle(), null);
+		}
+		return jPanelViewPrefs;
+	}
+
+	/**
+	 * This method initializes jCheckBoxHideMenubar	
+	 * 	
+	 * @return javax.swing.JCheckBox	
+	 */
+	private JCheckBox getJCheckBoxHideMenubar() {
+		if (jCheckBoxHideMenubar == null) {
+			String string = messages.getString("Page_HIDEMENUBAR");
+			jCheckBoxHideMenubar = new JCheckBox();
+			jCheckBoxHideMenubar.setBounds(new Rectangle(10, 120, 341, 21));
+			jCheckBoxHideMenubar.setFont(new Font("Dialog", Font.PLAIN, 12));
+			jCheckBoxHideMenubar.setText(string);
+			jCheckBoxHideMenubar.setEnabled(false);
+		}
+		return jCheckBoxHideMenubar;
+	}
+
+	/**
+	 * This method initializes jCheckBoxHideWindowUI	
+	 * 	
+	 * @return javax.swing.JCheckBox	
+	 */
+	private JCheckBox getJCheckBoxHideWindowUI() {
+		if (jCheckBoxHideWindowUI == null) {
+			String string = messages.getString("Page_HIDEWINDOWUI");
+			jCheckBoxHideWindowUI = new JCheckBox();
+			jCheckBoxHideWindowUI.setBounds(new Rectangle(10, 150, 341, 21));
+			jCheckBoxHideWindowUI.setFont(new Font("Dialog", Font.PLAIN, 12));
+			jCheckBoxHideWindowUI.setText(string);
+			jCheckBoxHideWindowUI.setEnabled(false);
+		}
+		return jCheckBoxHideWindowUI;
+	}
+
+	/**
+	 * This method initializes jCheckBoxFitWindow	
+	 * 	
+	 * @return javax.swing.JCheckBox	
+	 */
+	private JCheckBox getJCheckBoxFitWindow() {
+		if (jCheckBoxFitWindow == null) {
+			String string11 = messages.getString("Page_FITWINDOW");
+			jCheckBoxFitWindow = new JCheckBox();
+			jCheckBoxFitWindow.setBounds(new Rectangle(10, 180, 341, 21));
+			jCheckBoxFitWindow.setFont(new Font("Dialog", Font.PLAIN, 12));
+			jCheckBoxFitWindow.setText(string11);
+			jCheckBoxFitWindow.setEnabled(false);
+		}
+		return jCheckBoxFitWindow;
+	}
+
+	/**
+	 * This method initializes jCheckBoxCenterWindow	
+	 * 	
+	 * @return javax.swing.JCheckBox	
+	 */
+	private JCheckBox getJCheckBoxCenterWindow() {
+		if (jCheckBoxCenterWindow == null) {
+			String string = messages.getString("Page_CENTERWINDOW");
+			jCheckBoxCenterWindow = new JCheckBox();
+			jCheckBoxCenterWindow.setBounds(new Rectangle(10, 210, 341, 21));
+			jCheckBoxCenterWindow.setFont(new Font("Dialog", Font.PLAIN, 12));
+			jCheckBoxCenterWindow.setText(string);
+			jCheckBoxCenterWindow.setEnabled(false);
+		}
+		return jCheckBoxCenterWindow;
+	}
+
+	/**
+	 * This method initializes jCheckBoxDisplayDocTitle	
+	 * 	
+	 * @return javax.swing.JCheckBox	
+	 */
+	private JCheckBox getJCheckBoxDisplayDocTitle() {
+		if (jCheckBoxDisplayDocTitle == null) {
+			String string = messages.getString("Page_DISPLAYDOCTITLE");
+			jCheckBoxDisplayDocTitle = new JCheckBox();
+			jCheckBoxDisplayDocTitle.setBounds(new Rectangle(10, 240, 341, 21));
+			jCheckBoxDisplayDocTitle.setFont(new Font("Dialog", Font.PLAIN, 12));
+			jCheckBoxDisplayDocTitle.setSelected(true);
+			jCheckBoxDisplayDocTitle.setText(string);
+			jCheckBoxDisplayDocTitle.setEnabled(false);
+			jCheckBoxDisplayDocTitle.setVisible(false);
+		}
+		return jCheckBoxDisplayDocTitle;
+	}
+
 }  //  @jve:decl-index=0:visual-constraint="10,10"
