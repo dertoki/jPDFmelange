@@ -1,8 +1,17 @@
 #jPDFmelage properties file
-#Sat Aug 30 17:49:59 CEST 2008
-LocaleVariant=
-ImageScalingAlgorithm=4
-ShowButtonsPanel=false
+#Sun Jul 19 15:49:36 CEST 2009
+prefCenterWindow=false
+prefHideToolbar=false
 LocaleCountry=
-IconHeight=70
+prefFitWindow=true
+LocaleVariant=
 LocaleLanguage=de
+IconHeight=70
+enablePDFPreferences=true
+prefPageLayout=PAGE_LAYOUT_TWO_COLUMN_LEFT
+prefPageMode=PAGE_MODE_USE_NONE
+prefDisplayDocTitle=false
+prefHideWindowUI=false
+prefHideMenubar=true
+ShowButtonsPanel=false
+ImageScalingAlgorithm=4
