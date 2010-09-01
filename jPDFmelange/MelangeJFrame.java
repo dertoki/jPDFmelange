@@ -1338,6 +1338,11 @@ public class MelangeJFrame extends JFrame {
 		String bakFileName = fileName.substring(0,fileName.lastIndexOf('.')).concat(".bak");
 		File bakfile =  new File(bakFileName);
 
+		//
+		// prevent writing to a PDF that is blocked by the renderer.
+		//
+		jPanePreview.closePdfFile();
+				
 		// itext usage
 		System.out.println("Writing new content to <" + tmpfile.getName() + ">");
 		PdfReader reader = null;
