@@ -1,11 +1,10 @@
-# jPDFmelange
+### jPDFmelange
 
-see <http://dertoki.github.io/pdfMelange>
+* see <http://dertoki.github.io/pdfMelange>
 
-About
-=====
+#### About
 
-**pdfMelange** is a java program to modify PDF documents.
+* **pdfMelange** is a java program to modify PDF documents.
 
 #### Features:
 
