@@ -1,6 +1,6 @@
 ### jPDFmelange
 
-* have a look at the [homepage](http://dertoki.github.io/pdfMelange)
+* have a look at the [homepage](http://dertoki.github.io/pdfMelange).
 
 #### About
 
