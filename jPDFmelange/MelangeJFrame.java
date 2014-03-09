@@ -87,7 +87,7 @@ public class MelangeJFrame extends JFrame {
 	private static final long serialVersionUID = 4042464615276354878L;
 	
 	public static final String projectName = "jPDFmelange";
-	public static final String projectVersion = "0.3.2";
+	public static final String projectVersion = "0.3.4";
 	public String propertiesFileName = System.getProperty("user.dir").concat(System.getProperty("file.separator")).concat("melange.rc");
 	public String canonicalBufferFileName = "";
 	public String canonicalMainFileName  = "";
@@ -1672,7 +1672,7 @@ public class MelangeJFrame extends JFrame {
 			jMenuItemOnline.addActionListener(new java.awt.event.ActionListener() {
 				public void actionPerformed(java.awt.event.ActionEvent e) {
 					try {
-						Desktop.getDesktop().browse(new URI("http://jpdfmelange.berlios.de"));
+						Desktop.getDesktop().browse(new URI("http://dertoki.github.io/pdfMelange/"));
 					} catch (IOException e1) {
 						System.out.println("IOException");
 						e1.printStackTrace();

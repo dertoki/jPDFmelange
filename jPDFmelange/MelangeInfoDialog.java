@@ -80,7 +80,7 @@ public class MelangeInfoDialog extends JDialog {
 		this.setLocationRelativeTo(this.getOwner());
 		jTextAreaLibraryInfo.append(MelangeJFrame.projectName + " " +
 				                    MelangeJFrame.projectVersion + "\n" +
-				                    "http://jpdfmelange.berlios.de" + "\n\n");
+				                    "http://dertoki.github.io/pdfMelange/" + "\n\n");
 		jTextAreaLibraryInfo.append(message.getString("MelageInfo")+ "\n\n");
 		jTextAreaLibraryInfo.append("Using " +
 				                    System.getProperty("os.name") + " " + 
@@ -254,7 +254,7 @@ public class MelangeInfoDialog extends JDialog {
 			jTextArea1.setBackground(SystemColor.window);
 			jTextArea1.setBounds(new Rectangle(15, 15, 400, 15));
 			jTextArea1.setEditable(false);
-			jTextArea1.setText("Author: Tobias Tandetzki <toki104400 at users.berlios.de>");
+			jTextArea1.setText("Author: Tobias Tandetzki <tobzki@googlemail.com>");
 		}
 		return jTextArea1;
 	}
